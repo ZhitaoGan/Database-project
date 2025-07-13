@@ -162,16 +162,11 @@ def add_transaction():
     
     return redirect(url_for('home'))
 
-@app.route('/edit_transaction', methods=['GET', 'POST'])
+@app.route('/edit_transaction', methods=['POST'])
 def edit_transaction():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
     
-    if request.method == 'GET':
-        # Handle old GET requests by redirecting to home
-        return redirect(url_for('home'))
-    
-    # POST request - handle edit
     transaction_id = request.form['transaction_id']
     date = request.form['date']
     amount = request.form['amount']
