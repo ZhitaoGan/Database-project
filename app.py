@@ -50,12 +50,22 @@ def register():
         password = request.form['password']
 
         cur = mysql.connection.cursor()
+        
+        # Check if username already exists
+        cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+        existing_user = cur.fetchone()
+        
+        if existing_user:
+            msg = "Username already exists! Please choose a different username."
+            return render_template('register.html', msg=msg)
+        
+        # If username doesn't exist, insert new user
         cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
         mysql.connection.commit()
         cur.close()
         msg = "You have successfully registered, Please login to continue"
         return render_template('login.html', msg=msg)
-    return render_template('register.html')
+    return render_template('register.html', msg=msg)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

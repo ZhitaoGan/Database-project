@@ -1,43 +1,23 @@
+<!-- Modern Login Page -->
 <!DOCTYPE html>
-<html>
-   
+<html lang="en">
 <head>
-    <title>My expense tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
 </head>
-
 <body>
-    <div class="msg">{{ msg }}</div> 
-    <div class="main">
-        <h1>My expense tracker</h1>
-        <h3>Enter your login credentials</h3>
-
-        <form action="{{ url_for('login') }}" method="post">
-            <label for="first">
-                Username:
-            </label>
-            <input type="text" id="username" name="username" 
-                placeholder="Enter your Username" required>
-
-            <label for="password">
-                Password:
-            </label>
-            <input type="password" id="password" name="password" 
-                placeholder="Enter your Password" required>
-
-            <div class="wrap">
-                <button type="submit">
-                    Submit
-                </button>
-            </div>
-        </form>
-        
-        <p>Not registered?
-            <a href="{{ url_for('register') }}" style="text-decoration: none;">
-                Create an account
-            </a>
-        </p>
+    <div class="centered-container">
+        <div class="form-box">
+            <h1>Login</h1>
+            <form action="{{ url_for('login') }}" method="post" autocomplete="off">
+                <div class="msg">{{ msg }}</div>
+                <input type="text" name="username" placeholder="Enter Your Username" required>
+                <input type="password" name="password" placeholder="Enter Your Password" required>
+                <input type="submit" value="Login">
+            </form>
+            <p class="worddark">Don't have an account? <a class="worddark" href="{{ url_for('register') }}">Register here</a></p>
+        </div>
     </div>
 </body>
-
 </html>
