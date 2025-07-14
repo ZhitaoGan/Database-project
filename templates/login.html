@@ -1,23 +1,37 @@
 <!-- Modern Login Page -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ locale }}">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>{{ _('Login') }}</title>
     <link rel="stylesheet" href="/static/styles/style.css">
 </head>
 <body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select onchange="changeLanguage(this.value)">
+            <option value="en" {% if locale == 'en' %}selected{% endif %}>English</option>
+            <option value="zh" {% if locale == 'zh' %}selected{% endif %}>中文</option>
+        </select>
+    </div>
+
     <div class="centered-container">
         <div class="form-box">
-            <h1>Login</h1>
+            <h1>{{ _('Login') }}</h1>
             <form action="{{ url_for('login') }}" method="post" autocomplete="off">
                 <div class="msg">{{ msg }}</div>
-                <input type="text" name="username" placeholder="Enter Your Username" required>
-                <input type="password" name="password" placeholder="Enter Your Password" required>
-                <input type="submit" value="Login">
+                <input type="text" name="username" placeholder="{{ _('Enter Your Username') }}" required>
+                <input type="password" name="password" placeholder="{{ _('Enter Your Password') }}" required>
+                <input type="submit" value="{{ _('Login') }}">
             </form>
-            <p class="worddark">Don't have an account? <a class="worddark" href="{{ url_for('register') }}">Register here</a></p>
+            <p class="worddark">{{ _('Don\'t have an account?') }} <a class="worddark" href="{{ url_for('register') }}">{{ _('Register here') }}</a></p>
         </div>
     </div>
+
+    <script>
+        function changeLanguage(language) {
+            window.location.href = "{{ url_for('set_language', language='') }}" + language;
+        }
+    </script>
 </body>
 </html>
