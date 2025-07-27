@@ -99,6 +99,39 @@ msgstr "交易笔数"
 msgid "Largest Expense"
 msgstr "最大支出"
 
+msgid "Manage your expenses efficiently"
+msgstr "高效管理您的支出"
+
+msgid "Set Initial Balance"
+msgstr "设置初始余额"
+
+msgid "Set your initial balance"
+msgstr "设置您的初始余额"
+
+msgid "Welcome!"
+msgstr "欢迎！"
+
+msgid "Please set your initial balance to get started."
+msgstr "请设置您的初始余额以开始使用。"
+
+msgid "Initial Balance:"
+msgstr "初始余额："
+
+msgid "Enter your current balance"
+msgstr "输入您当前的余额"
+
+msgid "Set Balance"
+msgstr "设置余额"
+
+msgid "Current Balance:"
+msgstr "当前余额："
+
+msgid "Balance cannot be negative"
+msgstr "余额不能为负数"
+
+msgid "Please enter a valid amount"
+msgstr "请输入有效金额"
+
 msgid "Most Spent Category"
 msgstr "支出最多的类别"
 

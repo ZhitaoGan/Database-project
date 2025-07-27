@@ -12,6 +12,12 @@
         <div class="header">
             <div class="nav-bar">
                 <p class="welcome-text">Welcome, {{ username }}!</p>
+                <div class="balance-display">
+                    <span class="balance-label">{{ _('Current Balance:') }}</span>
+                    <span class="balance-amount {% if current_balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        ${{ "%.2f"|format(current_balance) }}
+                    </span>
+                </div>
             </div>
             <nav class="nav-links">
                 <a href="#dashboard">{{ _('Dashboard') }}</a>
@@ -53,7 +59,7 @@
                                     <button type="button" class="btn-edit" onclick="openEditModal('{{ transaction[0] }}', '{{ transaction[1] }}', '{{ transaction[2] }}', '{{ transaction[3] }}', '{{ transaction[6] }}')">{{ _('Edit') }}</button>
                                     <form action="{{ url_for('delete_transaction') }}" method="POST" style="display: inline;">
                                         <input type="hidden" name="transaction_id" value="{{ transaction[0] }}">
-                                        <button type="submit" class="btn-delete" onclick="return confirm('{{ _('Are you sure you want to delete this transaction?') }}')">{{ _('Delete') }}</button>
+                                        <button type="submit" class="btn-delete" onclick="return confirmDelete()">{{ _('Delete') }}</button>
                                     </form>
                                 </td>
                             </tr>
@@ -220,6 +226,10 @@
         }
 
         // Quick action functions
+        function confirmDelete() {
+            return confirm("{{ _('Are you sure you want to delete this transaction?') }}");
+        }
+
         function exportCSV() {
             window.location.href = "{{ url_for('export_csv') }}";
         }

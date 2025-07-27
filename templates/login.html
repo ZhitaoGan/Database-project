@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="/static/styles/style.css">
 </head>
 <body>
+    <!-- Header -->
+    <div class="app-header">
+        <h1 class="app-title">{{ _('Expense Tracker') }}</h1>
+        <p class="app-subtitle">{{ _('Manage your expenses efficiently') }}</p>
+    </div>
+
     <!-- Language Selector -->
     <div class="language-selector">
         <select onchange="changeLanguage(this.value)">

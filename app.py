@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, g
 from flask_mysqldb import MySQL
 from flask_babel import Babel, gettext, ngettext, get_locale
+import os
+from werkzeug.utils import send_from_directory
 
 app = Flask(__name__)
 
@@ -26,10 +28,8 @@ mysql = MySQL(app)
 def get_locale():
     # Check if user has selected a language
     if 'language' in session:
-        print(f"DEBUG: Session language is {session['language']}")
         return session['language']
     # Default to English
-    print("DEBUG: No session language, defaulting to English")
     return 'en'
 
 babel.init_app(app, locale_selector=get_locale)
@@ -133,17 +133,49 @@ def get_category_names():
     
     return translated_categories
 
+def check_user_balance(user_id):
+    """Check if user has set their initial balance"""
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT balance_id FROM Current_Balance WHERE user_id = %s", (user_id,))
+    balance_exists = cur.fetchone()
+    cur.close()
+    return balance_exists is not None
+
+def get_user_current_balance(user_id):
+    """Get user's current balance (total balance minus transaction sum)"""
+    cur = mysql.connection.cursor()
+    
+    # Get total balance
+    cur.execute("SELECT amount FROM Current_Balance WHERE user_id = %s", (user_id,))
+    balance_result = cur.fetchone()
+    
+    if not balance_result:
+        return 0.0
+    
+    total_balance = float(balance_result[0])
+    
+    # Get sum of all transactions
+    cur.execute("SELECT COALESCE(SUM(amount), 0) FROM Transactions WHERE user_id = %s", (user_id,))
+    transaction_sum = float(cur.fetchone()[0])
+    
+    cur.close()
+    
+    # Current balance = total balance - transaction sum
+    current_balance = total_balance - transaction_sum
+    return current_balance
+
 # Routes
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'logged_in' in session:
         transactions = grab_user_transactions(session['user_id'])
         statistics = get_user_statistics(session['user_id'])
+        current_balance = get_user_current_balance(session['user_id'])
         
         # Get translated categories for the modal
         categories = get_category_names()
         
-        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, locale=str(get_locale()))
+        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, current_balance=current_balance, locale=str(get_locale()))
     else:
         return redirect(url_for('login'))
 
@@ -161,7 +193,12 @@ def login():
             session['logged_in'] = True
             session['username'] = username
             session['user_id'] = user[0]  # user_id is the first column
-            return redirect(url_for('home'))
+            
+            # Check if user has set their initial balance
+            if not check_user_balance(user[0]):
+                return redirect(url_for('set_initial_balance'))
+            else:
+                return redirect(url_for('home'))
         else:
             msg = gettext("Invalid username or password")
     return render_template('login.html', msg=msg, locale=str(get_locale()))
@@ -191,6 +228,29 @@ def register():
         msg = gettext("You have successfully registered, Please login to continue")
         return render_template('login.html', msg=msg, locale=str(get_locale()))
     return render_template('register.html', msg=msg, locale=str(get_locale()))
+@app.route('/set_initial_balance', methods=['GET', 'POST'])
+def set_initial_balance():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    msg = ""
+    if request.method == 'POST':
+        try:
+            amount = float(request.form['amount'])
+            if amount < 0:
+                msg = gettext("Balance cannot be negative")
+            else:
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO Current_Balance (user_id, amount) VALUES (%s, %s)", 
+                          (session['user_id'], amount))
+                mysql.connection.commit()
+                cur.close()
+                return redirect(url_for('home'))
+        except ValueError:
+            msg = gettext("Please enter a valid amount")
+    
+    return render_template('set_balance.html', msg=msg, locale=str(get_locale()))
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
@@ -273,6 +333,11 @@ def set_budget():
     
     # TODO: Implement budget setting functionality
     return redirect(url_for('home'))
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

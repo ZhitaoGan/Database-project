@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('Set Initial Balance') }}</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="app-header">
+        <h1 class="app-title">{{ _('Expense Tracker') }}</h1>
+        <p class="app-subtitle">{{ _('Set your initial balance') }}</p>
+    </div>
+
+    <div class="centered-container">
+        <div class="form-box">
+            <h1>{{ _('Welcome!') }}</h1>
+            <p class="balance-intro">{{ _('Please set your initial balance to get started.') }}</p>
+            
+            <form action="{{ url_for('set_initial_balance') }}" method="post" autocomplete="off">
+                <div class="msg">{{ msg }}</div>
+                
+                <label for="amount">{{ _('Initial Balance:') }}</label>
+                <input type="number" name="amount" id="amount" step="0.01" min="0" placeholder="{{ _('Enter your current balance') }}" required>
+                
+                <input type="submit" value="{{ _('Set Balance') }}">
+            </form>
+        </div>
+    </div>
+</body>
+</html> 

@@ -98,6 +98,54 @@ msgstr ""
 msgid "No transactions found. Add your first expense!"
 msgstr ""
 
+#: templates/login.html:10
+msgid "Expense Tracker"
+msgstr "Expense Tracker"
+
+#: templates/login.html:11
+msgid "Manage your expenses efficiently"
+msgstr "Manage your expenses efficiently"
+
+#: templates/set_balance.html:8
+msgid "Set Initial Balance"
+msgstr "Set Initial Balance"
+
+#: templates/set_balance.html:10
+msgid "Set your initial balance"
+msgstr "Set your initial balance"
+
+#: templates/set_balance.html:15
+msgid "Welcome!"
+msgstr "Welcome!"
+
+#: templates/set_balance.html:16
+msgid "Please set your initial balance to get started."
+msgstr "Please set your initial balance to get started."
+
+#: templates/set_balance.html:20
+msgid "Initial Balance:"
+msgstr "Initial Balance:"
+
+#: templates/set_balance.html:21
+msgid "Enter your current balance"
+msgstr "Enter your current balance"
+
+#: templates/set_balance.html:23
+msgid "Set Balance"
+msgstr "Set Balance"
+
+#: templates/index.html:13
+msgid "Current Balance:"
+msgstr "Current Balance:"
+
+#: app.py:200
+msgid "Balance cannot be negative"
+msgstr "Balance cannot be negative"
+
+#: app.py:205
+msgid "Please enter a valid amount"
+msgstr "Please enter a valid amount"
+
 #: templates/index.html:75
 msgid "Quick Actions"
 msgstr ""
