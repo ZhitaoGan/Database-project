@@ -146,7 +146,8 @@
                 <input type="date" name="date" id="date" required>
                 
                 <label for="amount">{{ _('Amount:') }}</label>
-                <input type="number" name="amount" id="amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required>
+                <input type="number" name="amount" id="amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required oninvalid="showAmountError(this)" oninput="clearAmountError(this)">
+                <div id="amount-error" class="error-message" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 0.25rem;"></div>
                 
                 <label for="description">{{ _('Description:') }}</label>
                 <input type="text" name="description" id="description" placeholder="{{ _('Enter description') }}" required>
@@ -195,7 +196,8 @@
                 <input type="date" name="date" id="edit_date" required>
                 
                 <label for="edit_amount">{{ _('Amount:') }}</label>
-                <input type="number" name="amount" id="edit_amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required>
+                <input type="number" name="amount" id="edit_amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required oninvalid="showAmountError(this)" oninput="clearAmountError(this)">
+                <div id="edit-amount-error" class="error-message" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 0.25rem;"></div>
                 
                 <label for="edit_description">{{ _('Description:') }}</label>
                 <input type="text" name="description" id="edit_description" placeholder="{{ _('Enter description') }}" required>
@@ -383,6 +385,24 @@
 
         function closeAddBalanceModal() {
             document.getElementById('addBalanceModal').style.display = 'none';
+        }
+
+        // Custom validation functions
+        function showAmountError(input) {
+            const errorDiv = input.id === 'amount' ? document.getElementById('amount-error') : document.getElementById('edit-amount-error');
+            const currentLocale = '{{ locale }}';
+            
+            if (currentLocale === 'zh') {
+                errorDiv.textContent = '金额必须大于或等于0.01';
+            } else {
+                errorDiv.textContent = 'Value must be greater than or equal to 0.01';
+            }
+            errorDiv.style.display = 'block';
+        }
+
+        function clearAmountError(input) {
+            const errorDiv = input.id === 'amount' ? document.getElementById('amount-error') : document.getElementById('edit-amount-error');
+            errorDiv.style.display = 'none';
         }
     </script>
 </body>

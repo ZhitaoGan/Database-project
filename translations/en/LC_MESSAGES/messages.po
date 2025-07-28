@@ -415,3 +415,7 @@ msgstr "Manage Tags"
 msgid "Balance must be greater than 0"
 msgstr "Balance must be greater than 0"
 
+#: templates/index.html:javascript
+msgid "Value must be greater than or equal to 0.01"
+msgstr "Value must be greater than or equal to 0.01"
+

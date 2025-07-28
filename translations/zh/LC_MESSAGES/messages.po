@@ -309,3 +309,6 @@ msgstr "管理标签"
 msgid "Balance must be greater than 0"
 msgstr "余额必须大于0"
 
+msgid "Value must be greater than or equal to 0.01"
+msgstr "金额必须大于或等于0.01"
+
