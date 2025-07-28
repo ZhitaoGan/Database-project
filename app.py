@@ -44,20 +44,43 @@ def set_language(language):
 def grab_user_transactions(user_id):
     cur = mysql.connection.cursor()
     
+    # First, get all transactions with their basic info
     cur.execute("""
-        SELECT t.transaction_id, t.date, t.amount, t.description, t.user_id, c.category_name, t.category_id,
-               tag.name as tag_name, tag.tag_id
+        SELECT t.transaction_id, t.date, t.amount, t.description, t.user_id, c.category_name, t.category_id
         FROM Transactions t 
         INNER JOIN Category c ON t.category_id = c.category_id 
-        LEFT JOIN Tags_and_Transactions tat ON t.transaction_id = tat.transaction_id
-        LEFT JOIN Tags tag ON tat.tag_id = tag.tag_id
         WHERE t.user_id = %s 
         ORDER BY t.date DESC
     """, (user_id,))
     
     transactions = cur.fetchall()
+    
+    # For each transaction, get its tags
+    result = []
+    for transaction in transactions:
+        transaction_id = transaction[0]
+        
+        # Get tags for this transaction
+        cur.execute("""
+            SELECT tag.name, tag.tag_id
+            FROM Tags tag
+            INNER JOIN Tags_and_Transactions tat ON tag.tag_id = tat.tag_id
+            WHERE tat.transaction_id = %s AND tag.user_id = %s
+            ORDER BY tag.name
+        """, (transaction_id, user_id))
+        
+        tags = cur.fetchall()
+        
+        # Create tag names string and tag IDs string
+        tag_names = ', '.join([tag[0] for tag in tags]) if tags else None
+        tag_ids = ', '.join([str(tag[1]) for tag in tags]) if tags else None
+        
+        # Add tag info to transaction
+        transaction_with_tags = transaction + (tag_names, tag_ids)
+        result.append(transaction_with_tags)
+    
     cur.close()
-    return transactions
+    return result
 
 def get_user_statistics(user_id):
     cur = mysql.connection.cursor()
@@ -314,7 +337,7 @@ def add_transaction():
     amount = request.form['amount']
     description = request.form['description']
     category_id = request.form['category_id']
-    tag_id = request.form.get('tag_id', '').strip()
+    tag_ids = request.form.getlist('tag_ids')  # Get multiple tag IDs
     
     # Validate amount is greater than 0
     try:
@@ -333,17 +356,18 @@ def add_transaction():
     # Get the transaction ID
     transaction_id = cur.lastrowid
     
-    # Add tag association if tag is selected
-    if tag_id:
-        # Verify the tag belongs to the current user
-        cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
-        tag_exists = cur.fetchone()
-        
-        if tag_exists:
-            cur.execute("""
-                INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
-                VALUES (%s, %s)
-            """, (tag_id, transaction_id))
+    # Add tag associations if tags are selected
+    if tag_ids:
+        # Verify all tags belong to the current user
+        for tag_id in tag_ids:
+            cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+            tag_exists = cur.fetchone()
+            
+            if tag_exists:
+                cur.execute("""
+                    INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
+                    VALUES (%s, %s)
+                """, (tag_id, transaction_id))
     
     mysql.connection.commit()
     cur.close()
@@ -360,7 +384,7 @@ def edit_transaction():
     amount = request.form['amount']
     description = request.form['description']
     category_id = request.form['category_id']
-    tag_id = request.form.get('tag_id', '').strip()
+    tag_ids = request.form.getlist('tag_ids')  # Get multiple tag IDs
     
     # Validate amount is greater than 0
     try:
@@ -382,17 +406,18 @@ def edit_transaction():
     # Remove existing tag associations
     cur.execute("DELETE FROM Tags_and_Transactions WHERE transaction_id = %s", (transaction_id,))
     
-    # Add new tag association if tag is selected
-    if tag_id:
-        # Verify the tag belongs to the current user
-        cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
-        tag_exists = cur.fetchone()
-        
-        if tag_exists:
-            cur.execute("""
-                INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
-                VALUES (%s, %s)
-            """, (tag_id, transaction_id))
+    # Add new tag associations if tags are selected
+    if tag_ids:
+        # Verify all tags belong to the current user
+        for tag_id in tag_ids:
+            cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+            tag_exists = cur.fetchone()
+            
+            if tag_exists:
+                cur.execute("""
+                    INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
+                    VALUES (%s, %s)
+                """, (tag_id, transaction_id))
     
     mysql.connection.commit()
     cur.close()

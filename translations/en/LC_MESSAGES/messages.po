@@ -255,3 +255,163 @@ msgstr "Already have an account?"
 msgid "Login here"
 msgstr "Login here"
 
+#: templates/index.html:40
+msgid "Tag"
+msgstr "Tag"
+
+#: templates/index.html:136
+msgid "Tags (Optional):"
+msgstr "Tags (Optional):"
+
+#: templates/index.html:145
+msgid "No tags available. Create tags in the Manage Tags section."
+msgstr "No tags available. Create tags in the Manage Tags section."
+
+#: templates/index.html:172
+msgid "Tags (Optional):"
+msgstr "Tags (Optional):"
+
+#: templates/index.html:181
+msgid "No tags available. Create tags in the Manage Tags section."
+msgstr "No tags available. Create tags in the Manage Tags section."
+
+#: templates/tags.html:5
+msgid "Tag Management"
+msgstr "Tag Management"
+
+#: templates/tags.html:36
+msgid "Add New Tag"
+msgstr "Add New Tag"
+
+#: templates/tags.html:52
+msgid "Total Amount:"
+msgstr "Total Amount:"
+
+#: templates/tags.html:56
+msgid "Transaction Count:"
+msgstr "Transaction Count:"
+
+#: templates/tags.html:60
+msgid "View Transactions"
+msgstr "View Transactions"
+
+#: templates/tags.html:65
+msgid "No tags found. Create your first tag!"
+msgstr "No tags found. Create your first tag!"
+
+#: templates/tags.html:78
+msgid "Back to Dashboard"
+msgstr "Back to Dashboard"
+
+#: templates/tags.html:84
+msgid "Tag Summary"
+msgstr "Tag Summary"
+
+#: templates/tags.html:86
+msgid "Total Tags"
+msgstr "Total Tags"
+
+#: templates/tags.html:90
+msgid "Total Tagged Expenses"
+msgstr "Total Tagged Expenses"
+
+#: templates/tags.html:94
+msgid "Most Used Tag"
+msgstr "Most Used Tag"
+
+#: templates/tags.html:106
+msgid "Add New Tag"
+msgstr "Add New Tag"
+
+#: templates/tags.html:112
+msgid "Tag Name:"
+msgstr "Tag Name:"
+
+#: templates/tags.html:113
+msgid "Enter tag name"
+msgstr "Enter tag name"
+
+#: templates/tags.html:116
+msgid "Add Tag"
+msgstr "Add Tag"
+
+#: templates/tags.html:127
+msgid "Edit Tag"
+msgstr "Edit Tag"
+
+#: templates/tags.html:135
+msgid "Tag Name:"
+msgstr "Tag Name:"
+
+#: templates/tags.html:117
+msgid "Update Tag"
+msgstr "Update Tag"
+
+#: templates/tags.html:145
+msgid "Tag Transactions"
+msgstr "Tag Transactions"
+
+#: templates/tags.html:145
+msgid "Transactions"
+msgstr "Transactions"
+
+#: templates/tags.html:145
+msgid "No transactions found for this tag."
+msgstr "No transactions found for this tag."
+
+#: templates/tags.html:145
+msgid "Error loading transactions."
+msgstr "Error loading transactions."
+
+#: templates/tags.html:145
+msgid "Are you sure you want to delete this tag? This will remove the tag from all associated transactions."
+msgstr "Are you sure you want to delete this tag? This will remove the tag from all associated transactions."
+
+#: templates/index.html:14
+msgid "Welcome,"
+msgstr "Welcome,"
+
+#: templates/index.html:21
+msgid "Add"
+msgstr "Add"
+
+#: templates/index.html:240
+msgid "New Balance Amount:"
+msgstr "New Balance Amount:"
+
+#: templates/index.html:241
+msgid "Enter new balance"
+msgstr "Enter new balance"
+
+#: templates/index.html:244
+msgid "Update Balance"
+msgstr "Update Balance"
+
+#: templates/index.html:255
+msgid "Add Balance"
+msgstr "Add Balance"
+
+#: templates/index.html:261
+msgid "Amount to Add:"
+msgstr "Amount to Add:"
+
+#: templates/index.html:262
+msgid "Enter amount to add"
+msgstr "Enter amount to add"
+
+#: templates/index.html:265
+msgid "Add to Balance"
+msgstr "Add to Balance"
+
+#: templates/index.html:67
+msgid "None"
+msgstr "None"
+
+#: templates/index.html:27 templates/tags.html:23
+msgid "Manage Tags"
+msgstr "Manage Tags"
+
+#: app.py:309
+msgid "Balance must be greater than 0"
+msgstr "Balance must be greater than 0"
+

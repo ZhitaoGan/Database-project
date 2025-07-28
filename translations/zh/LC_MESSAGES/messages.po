@@ -201,3 +201,111 @@ msgstr "已有账户？"
 msgid "Login here"
 msgstr "在此登录"
 
+msgid "Tag"
+msgstr "标签"
+
+msgid "Tags (Optional):"
+msgstr "标签（可选）："
+
+msgid "No tags available. Create tags in the Manage Tags section."
+msgstr "暂无可用标签。请在管理标签部分创建标签。"
+
+msgid "Tag Management"
+msgstr "标签管理"
+
+msgid "Add New Tag"
+msgstr "添加新标签"
+
+msgid "Total Amount:"
+msgstr "总金额："
+
+msgid "Transaction Count:"
+msgstr "交易笔数："
+
+msgid "View Transactions"
+msgstr "查看交易"
+
+msgid "No tags found. Create your first tag!"
+msgstr "未找到标签。创建您的第一个标签！"
+
+msgid "Back to Dashboard"
+msgstr "返回仪表盘"
+
+msgid "Tag Summary"
+msgstr "标签摘要"
+
+msgid "Total Tags"
+msgstr "标签总数"
+
+msgid "Total Tagged Expenses"
+msgstr "已标记支出总额"
+
+msgid "Most Used Tag"
+msgstr "最常用标签"
+
+msgid "Tag Name:"
+msgstr "标签名称："
+
+msgid "Enter tag name"
+msgstr "输入标签名称"
+
+msgid "Add Tag"
+msgstr "添加标签"
+
+msgid "Edit Tag"
+msgstr "编辑标签"
+
+msgid "Update Tag"
+msgstr "更新标签"
+
+msgid "Tag Transactions"
+msgstr "标签交易"
+
+msgid "Transactions"
+msgstr "交易"
+
+msgid "No transactions found for this tag."
+msgstr "未找到此标签的交易。"
+
+msgid "Error loading transactions."
+msgstr "加载交易时出错。"
+
+msgid "Are you sure you want to delete this tag? This will remove the tag from all associated transactions."
+msgstr "您确定要删除此标签吗？这将从所有相关交易中移除该标签。"
+
+msgid "Welcome,"
+msgstr "欢迎，"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "New Balance Amount:"
+msgstr "新余额金额："
+
+msgid "Enter new balance"
+msgstr "输入新余额"
+
+msgid "Update Balance"
+msgstr "更新余额"
+
+msgid "Add Balance"
+msgstr "添加余额"
+
+msgid "Amount to Add:"
+msgstr "要添加的金额："
+
+msgid "Enter amount to add"
+msgstr "输入要添加的金额"
+
+msgid "Add to Balance"
+msgstr "添加到余额"
+
+msgid "None"
+msgstr "无"
+
+msgid "Manage Tags"
+msgstr "管理标签"
+
+msgid "Balance must be greater than 0"
+msgstr "余额必须大于0"
+

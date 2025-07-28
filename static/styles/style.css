@@ -619,6 +619,69 @@ input[type="submit"]:hover, .btn:hover {
     margin-bottom: 0;
 }
 
+/* Tag Selection Styles */
+.tag-selection {
+    margin-bottom: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e3f2fd;
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: #f9f9f9;
+}
+
+.tag-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.tag-checkbox:hover {
+    background: #e3f2fd;
+}
+
+.tag-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: auto;
+    margin-bottom: 0;
+}
+
+.tag-checkbox label {
+    margin-bottom: 0;
+    cursor: pointer;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.no-tags-message {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    margin: 0;
+}
+
+/* Tag Badge Styles */
+.tag-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #64b5f6 0%, #b3e5fc 100%);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0.1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.no-tag {
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
 @media (max-width: 500px) {
     .form-box {
         min-width: 90vw;

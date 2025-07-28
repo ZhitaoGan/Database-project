@@ -58,11 +58,20 @@
                             <tr>
                                 <td>{{ transaction[1] }}</td>
                                 <td>{{ transaction[5] }}</td>
-                                <td>{{ transaction[7] if transaction[7] else 'None' }}</td>
+                                <td>
+                                    {% if transaction[7] %}
+                                        {% set tag_names = transaction[7].split(', ') %}
+                                        {% for tag_name in tag_names %}
+                                            <span class="tag-badge">{{ tag_name }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="no-tag">{{ _('None') }}</span>
+                                    {% endif %}
+                                </td>
                                 <td class="amount-negative">-${{ "%.2f"|format(transaction[2]) }}</td>
                                 <td>{{ transaction[3] }}</td>
                                 <td>
-                                    <button type="button" class="btn-edit" data-transaction='{{ transaction[0] }}' data-date='{{ transaction[1] }}' data-amount='{{ transaction[2] }}' data-description='{{ transaction[3] }}' data-category='{{ transaction[6] }}' data-tag='{{ transaction[8] if transaction[8] else "" }}' onclick="openEditModalFromData(this)">{{ _('Edit') }}</button>
+                                    <button type="button" class="btn-edit" data-transaction='{{ transaction[0] }}' data-date='{{ transaction[1] }}' data-amount='{{ transaction[2] }}' data-description='{{ transaction[3] }}' data-category='{{ transaction[6] }}' data-tags='{{ transaction[8] if transaction[8] else "" }}' onclick="openEditModalFromData(this)">{{ _('Edit') }}</button>
                                     <form action="{{ url_for('delete_transaction') }}" method="POST" style="display: inline;">
                                         <input type="hidden" name="transaction_id" value="{{ transaction[0] }}">
                                         <button type="submit" class="btn-delete" onclick="return confirmDelete()">{{ _('Delete') }}</button>
@@ -149,13 +158,18 @@
                     {% endfor %}
                 </select>
                 
-                <label for="tag_id">{{ _('Tag (Optional):') }}</label>
-                <select name="tag_id" id="tag_id">
-                    <option value="">{{ _('None') }}</option>
+                <label for="tag_ids">{{ _('Tags (Optional):') }}</label>
+                <div class="tag-selection">
                     {% for tag in tags %}
-                        <option value="{{ tag[0] }}">{{ tag[1] }}</option>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" name="tag_ids" id="tag_{{ tag[0] }}" value="{{ tag[0] }}">
+                            <label for="tag_{{ tag[0] }}">{{ tag[1] }}</label>
+                        </div>
                     {% endfor %}
-                </select>
+                    {% if not tags %}
+                        <p class="no-tags-message">{{ _('No tags available. Create tags in the Manage Tags section.') }}</p>
+                    {% endif %}
+                </div>
                 
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Add Transaction') }}</button>
@@ -193,13 +207,18 @@
                     {% endfor %}
                 </select>
                 
-                <label for="edit_tag_id">{{ _('Tag (Optional):') }}</label>
-                <select name="tag_id" id="edit_tag_id">
-                    <option value="">{{ _('None') }}</option>
+                <label for="edit_tag_ids">{{ _('Tags (Optional):') }}</label>
+                <div class="tag-selection">
                     {% for tag in tags %}
-                        <option value="{{ tag[0] }}">{{ tag[1] }}</option>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" name="tag_ids" id="edit_tag_{{ tag[0] }}" value="{{ tag[0] }}">
+                            <label for="edit_tag_{{ tag[0] }}">{{ tag[1] }}</label>
+                        </div>
                     {% endfor %}
-                </select>
+                    {% if not tags %}
+                        <p class="no-tags-message">{{ _('No tags available. Create tags in the Manage Tags section.') }}</p>
+                    {% endif %}
+                </div>
                 
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Update Transaction') }}</button>
@@ -281,7 +300,7 @@
             const amount = button.getAttribute('data-amount');
             const description = button.getAttribute('data-description');
             const categoryId = button.getAttribute('data-category');
-            const tagId = button.getAttribute('data-tag');
+            const tags = button.getAttribute('data-tags');
             
             // Populate the edit modal with transaction data
             document.getElementById('edit_transaction_id').value = transactionId;
@@ -289,7 +308,23 @@
             document.getElementById('edit_amount').value = amount;
             document.getElementById('edit_description').value = description;
             document.getElementById('edit_category_id').value = categoryId;
-            document.getElementById('edit_tag_id').value = tagId || '';
+            
+            // Clear all tag checkboxes first
+            const tagCheckboxes = document.querySelectorAll('input[name="tag_ids"]');
+            tagCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Check the appropriate tag checkboxes based on the transaction's tags
+            if (tags) {
+                const tagIds = tags.split(',').map(id => id.trim());
+                tagIds.forEach(tagId => {
+                    const checkbox = document.getElementById('edit_tag_' + tagId);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
             
             // Show the modal
             document.getElementById('editTransactionModal').style.display = 'block';
