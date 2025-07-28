@@ -137,7 +137,7 @@
                 <input type="date" name="date" id="date" required>
                 
                 <label for="amount">{{ _('Amount:') }}</label>
-                <input type="number" name="amount" id="amount" step="0.01" min="0" placeholder="{{ _('Enter amount') }}" required>
+                <input type="number" name="amount" id="amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required>
                 
                 <label for="description">{{ _('Description:') }}</label>
                 <input type="text" name="description" id="description" placeholder="{{ _('Enter description') }}" required>
@@ -181,7 +181,7 @@
                 <input type="date" name="date" id="edit_date" required>
                 
                 <label for="edit_amount">{{ _('Amount:') }}</label>
-                <input type="number" name="amount" id="edit_amount" step="0.01" min="0" placeholder="{{ _('Enter amount') }}" required>
+                <input type="number" name="amount" id="edit_amount" step="0.01" min="0.01" placeholder="{{ _('Enter amount') }}" required>
                 
                 <label for="edit_description">{{ _('Description:') }}</label>
                 <input type="text" name="description" id="edit_description" placeholder="{{ _('Enter description') }}" required>
@@ -220,7 +220,7 @@
                 <div class="msg">{{ msg }}</div>
                 
                 <label for="new_balance">{{ _('New Balance Amount:') }}</label>
-                <input type="number" name="new_balance" id="new_balance" step="0.01" min="0" placeholder="{{ _('Enter new balance') }}" required>
+                <input type="number" name="new_balance" id="new_balance" step="0.01" min="0.01" placeholder="{{ _('Enter new balance') }}" required>
                 
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Update Balance') }}</button>
@@ -241,7 +241,7 @@
                 <div class="msg">{{ msg }}</div>
                 
                 <label for="amount_to_add">{{ _('Amount to Add:') }}</label>
-                <input type="number" name="amount_to_add" id="amount_to_add" step="0.01" min="0" placeholder="{{ _('Enter amount to add') }}" required>
+                <input type="number" name="amount_to_add" id="amount_to_add" step="0.01" min="0.01" placeholder="{{ _('Enter amount to add') }}" required>
                 
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Add to Balance') }}</button>

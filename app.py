@@ -283,8 +283,8 @@ def set_initial_balance():
     if request.method == 'POST':
         try:
             amount = float(request.form['amount'])
-            if amount < 0:
-                msg = gettext("Balance cannot be negative")
+            if amount <= 0:
+                msg = gettext("Balance must be greater than 0")
             else:
                 cur = mysql.connection.cursor()
                 cur.execute("INSERT INTO Current_Balance (user_id, amount) VALUES (%s, %s)", 
@@ -315,6 +315,14 @@ def add_transaction():
     description = request.form['description']
     category_id = request.form['category_id']
     tag_id = request.form.get('tag_id', '').strip()
+    
+    # Validate amount is greater than 0
+    try:
+        amount_float = float(amount)
+        if amount_float <= 0:
+            return redirect(url_for('home'))
+    except ValueError:
+        return redirect(url_for('home'))
     
     cur = mysql.connection.cursor()
     cur.execute("""
@@ -353,6 +361,14 @@ def edit_transaction():
     description = request.form['description']
     category_id = request.form['category_id']
     tag_id = request.form.get('tag_id', '').strip()
+    
+    # Validate amount is greater than 0
+    try:
+        amount_float = float(amount)
+        if amount_float <= 0:
+            return redirect(url_for('home'))
+    except ValueError:
+        return redirect(url_for('home'))
     
     cur = mysql.connection.cursor()
     
@@ -407,7 +423,7 @@ def edit_balance():
     
     try:
         new_balance = float(request.form['new_balance'])
-        if new_balance < 0:
+        if new_balance <= 0:
             return redirect(url_for('home'))
         
         cur = mysql.connection.cursor()
@@ -431,7 +447,7 @@ def add_balance():
     
     try:
         amount_to_add = float(request.form['amount_to_add'])
-        if amount_to_add < 0:
+        if amount_to_add <= 0:
             return redirect(url_for('home'))
         
         cur = mysql.connection.cursor()

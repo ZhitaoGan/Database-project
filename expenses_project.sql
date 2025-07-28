@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS Transactions (
     CONSTRAINT PK_Transactions PRIMARY KEY (transaction_id),
     CONSTRAINT FK_Transactions_user FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     CONSTRAINT FK_Transactions_category FOREIGN KEY (category_id) REFERENCES Category(category_id) ON DELETE CASCADE,
-    CONSTRAINT CK_Transactions_amount_nonneg CHECK (amount >= 0)
+    CONSTRAINT CK_Transactions_amount_positive CHECK (amount > 0)
 );
 
 -- Budgets table
