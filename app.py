@@ -45,9 +45,12 @@ def grab_user_transactions(user_id):
     cur = mysql.connection.cursor()
     
     cur.execute("""
-        SELECT t.transaction_id, t.date, t.amount, t.description, t.user_id, c.category_name, t.category_id
+        SELECT t.transaction_id, t.date, t.amount, t.description, t.user_id, c.category_name, t.category_id,
+               tag.name as tag_name, tag.tag_id
         FROM Transactions t 
         INNER JOIN Category c ON t.category_id = c.category_id 
+        LEFT JOIN Tags_and_Transactions tat ON t.transaction_id = tat.transaction_id
+        LEFT JOIN Tags tag ON tat.tag_id = tag.tag_id
         WHERE t.user_id = %s 
         ORDER BY t.date DESC
     """, (user_id,))
@@ -133,6 +136,48 @@ def get_category_names():
     
     return translated_categories
 
+def get_tag_names(user_id):
+    """Get all tag names for a specific user"""
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT tag_id, name FROM Tags WHERE user_id = %s ORDER BY name", (user_id,))
+    tags = cur.fetchall()
+    cur.close()
+    return tags
+
+def get_user_tags_with_stats(user_id):
+    """Get user's tags with statistics"""
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT t.tag_id, t.name, 
+               COALESCE(SUM(tr.amount), 0) as total_amount,
+               COUNT(tr.transaction_id) as transaction_count
+        FROM Tags t
+        LEFT JOIN Tags_and_Transactions tat ON t.tag_id = tat.tag_id
+        LEFT JOIN Transactions tr ON tat.transaction_id = tr.transaction_id AND tr.user_id = %s
+        WHERE t.user_id = %s
+        GROUP BY t.tag_id, t.name
+        ORDER BY total_amount DESC
+    """, (user_id, user_id))
+    tags = cur.fetchall()
+    cur.close()
+    return tags
+
+def get_transactions_by_tag(user_id, tag_id):
+    """Get all transactions for a specific tag"""
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT tr.transaction_id, tr.date, tr.amount, tr.description, c.category_name
+        FROM Transactions tr
+        INNER JOIN Tags_and_Transactions tat ON tr.transaction_id = tat.transaction_id
+        INNER JOIN Category c ON tr.category_id = c.category_id
+        INNER JOIN Tags t ON tat.tag_id = t.tag_id
+        WHERE tr.user_id = %s AND tat.tag_id = %s AND t.user_id = %s
+        ORDER BY tr.date DESC
+    """, (user_id, tag_id, user_id))
+    transactions = cur.fetchall()
+    cur.close()
+    return transactions
+
 def check_user_balance(user_id):
     """Check if user has set their initial balance"""
     cur = mysql.connection.cursor()
@@ -174,8 +219,9 @@ def home():
         
         # Get translated categories for the modal
         categories = get_category_names()
+        tags = get_tag_names(session['user_id'])
         
-        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, current_balance=current_balance, locale=str(get_locale()))
+        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, tags=tags, current_balance=current_balance, locale=str(get_locale()))
     else:
         return redirect(url_for('login'))
 
@@ -268,12 +314,29 @@ def add_transaction():
     amount = request.form['amount']
     description = request.form['description']
     category_id = request.form['category_id']
+    tag_id = request.form.get('tag_id', '').strip()
     
     cur = mysql.connection.cursor()
     cur.execute("""
         INSERT INTO Transactions (date, amount, description, user_id, category_id) 
         VALUES (%s, %s, %s, %s, %s)
     """, (date, amount, description, session['user_id'], category_id))
+    
+    # Get the transaction ID
+    transaction_id = cur.lastrowid
+    
+    # Add tag association if tag is selected
+    if tag_id:
+        # Verify the tag belongs to the current user
+        cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+        tag_exists = cur.fetchone()
+        
+        if tag_exists:
+            cur.execute("""
+                INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
+                VALUES (%s, %s)
+            """, (tag_id, transaction_id))
+    
     mysql.connection.commit()
     cur.close()
     
@@ -289,13 +352,32 @@ def edit_transaction():
     amount = request.form['amount']
     description = request.form['description']
     category_id = request.form['category_id']
+    tag_id = request.form.get('tag_id', '').strip()
     
     cur = mysql.connection.cursor()
+    
+    # Update transaction
     cur.execute("""
         UPDATE Transactions 
         SET date = %s, amount = %s, description = %s, category_id = %s 
         WHERE transaction_id = %s AND user_id = %s
     """, (date, amount, description, category_id, transaction_id, session['user_id']))
+    
+    # Remove existing tag associations
+    cur.execute("DELETE FROM Tags_and_Transactions WHERE transaction_id = %s", (transaction_id,))
+    
+    # Add new tag association if tag is selected
+    if tag_id:
+        # Verify the tag belongs to the current user
+        cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+        tag_exists = cur.fetchone()
+        
+        if tag_exists:
+            cur.execute("""
+                INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
+                VALUES (%s, %s)
+            """, (tag_id, transaction_id))
+    
     mysql.connection.commit()
     cur.close()
     
@@ -317,6 +399,200 @@ def delete_transaction():
     cur.close()
     
     return redirect(url_for('home'))
+
+@app.route('/edit_balance', methods=['POST'])
+def edit_balance():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        new_balance = float(request.form['new_balance'])
+        if new_balance < 0:
+            return redirect(url_for('home'))
+        
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE Current_Balance 
+            SET amount = %s 
+            WHERE user_id = %s
+        """, (new_balance, session['user_id']))
+        mysql.connection.commit()
+        cur.close()
+        
+    except ValueError:
+        pass  # Invalid input, just redirect back
+    
+    return redirect(url_for('home'))
+
+@app.route('/add_balance', methods=['POST'])
+def add_balance():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        amount_to_add = float(request.form['amount_to_add'])
+        if amount_to_add < 0:
+            return redirect(url_for('home'))
+        
+        cur = mysql.connection.cursor()
+        # Get current balance
+        cur.execute("SELECT amount FROM Current_Balance WHERE user_id = %s", (session['user_id'],))
+        current_balance = cur.fetchone()
+        
+        if current_balance:
+            new_total_balance = float(current_balance[0]) + amount_to_add
+            cur.execute("""
+                UPDATE Current_Balance 
+                SET amount = %s 
+                WHERE user_id = %s
+            """, (new_total_balance, session['user_id']))
+        else:
+            # If no balance exists, create one
+            cur.execute("""
+                INSERT INTO Current_Balance (user_id, amount) 
+                VALUES (%s, %s)
+            """, (session['user_id'], amount_to_add))
+        
+        mysql.connection.commit()
+        cur.close()
+        
+    except ValueError:
+        pass  # Invalid input, just redirect back
+    
+    return redirect(url_for('home'))
+
+# Tag Management Routes
+@app.route('/manage_tags')
+def manage_tags():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    tags = get_user_tags_with_stats(session['user_id'])
+    current_balance = get_user_current_balance(session['user_id'])
+    
+    # Calculate tag statistics
+    tag_count = len(tags)
+    total_tagged_amount = sum(tag[2] for tag in tags)
+    most_used_tag = max(tags, key=lambda x: x[3])[1] if tags else None
+    
+    return render_template('tags.html', 
+                         username=session.get('username', ''), 
+                         tags=tags, 
+                         tag_count=tag_count,
+                         total_tagged_amount=total_tagged_amount,
+                         most_used_tag=most_used_tag,
+                         current_balance=current_balance,
+                         locale=str(get_locale()))
+
+@app.route('/add_tag', methods=['POST'])
+def add_tag():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    tag_name = request.form['tag_name'].strip()
+    
+    if not tag_name:
+        return redirect(url_for('manage_tags'))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check if tag already exists for this user
+    cur.execute("SELECT * FROM Tags WHERE name = %s AND user_id = %s", (tag_name, session['user_id']))
+    existing_tag = cur.fetchone()
+    
+    if existing_tag:
+        return redirect(url_for('manage_tags'))
+    
+    # Insert new tag
+    cur.execute("INSERT INTO Tags (name, user_id) VALUES (%s, %s)", (tag_name, session['user_id']))
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_tags'))
+
+@app.route('/edit_tag', methods=['POST'])
+def edit_tag():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    tag_id = request.form['tag_id']
+    tag_name = request.form['tag_name'].strip()
+    
+    if not tag_name:
+        return redirect(url_for('manage_tags'))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check if tag name already exists for this user (excluding current tag)
+    cur.execute("SELECT * FROM Tags WHERE name = %s AND tag_id != %s AND user_id = %s", (tag_name, tag_id, session['user_id']))
+    existing_tag = cur.fetchone()
+    
+    if existing_tag:
+        return redirect(url_for('manage_tags'))
+    
+    # Update tag (ensure it belongs to the current user)
+    cur.execute("UPDATE Tags SET name = %s WHERE tag_id = %s AND user_id = %s", (tag_name, tag_id, session['user_id']))
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_tags'))
+
+@app.route('/delete_tag', methods=['POST'])
+def delete_tag():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    tag_id = request.form['tag_id']
+    
+    cur = mysql.connection.cursor()
+    
+    # Delete tag associations first (only for transactions owned by this user)
+    cur.execute("""
+        DELETE tat FROM Tags_and_Transactions tat
+        INNER JOIN Transactions tr ON tat.transaction_id = tr.transaction_id
+        WHERE tat.tag_id = %s AND tr.user_id = %s
+    """, (tag_id, session['user_id']))
+    
+    # Delete the tag (only if it belongs to the current user)
+    cur.execute("DELETE FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_tags'))
+
+@app.route('/get_tag_transactions')
+def get_tag_transactions():
+    if 'logged_in' not in session:
+        return {'error': 'Not logged in'}, 401
+    
+    tag_id = request.args.get('tag_id')
+    if not tag_id:
+        return {'error': 'Tag ID required'}, 400
+    
+    # Verify the tag belongs to the current user
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT tag_id FROM Tags WHERE tag_id = %s AND user_id = %s", (tag_id, session['user_id']))
+    tag_exists = cur.fetchone()
+    cur.close()
+    
+    if not tag_exists:
+        return {'error': 'Tag not found'}, 404
+    
+    transactions = get_transactions_by_tag(session['user_id'], tag_id)
+    
+    # Convert to JSON format
+    transaction_list = []
+    for transaction in transactions:
+        transaction_list.append({
+            'transaction_id': transaction[0],
+            'date': str(transaction[1]),
+            'amount': float(transaction[2]),
+            'description': transaction[3],
+            'category': transaction[4]
+        })
+    
+    return {'transactions': transaction_list}
 
 @app.route('/export_csv')
 def export_csv():

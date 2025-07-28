@@ -17,11 +17,15 @@
                     <span class="balance-amount {% if current_balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
                         ${{ "%.2f"|format(current_balance) }}
                     </span>
+                    <div class="balance-actions">
+                        <button type="button" class="btn-edit-balance" onclick="openEditBalanceModal()">{{ _('Edit') }}</button>
+                        <button type="button" class="btn-add-balance" onclick="openAddBalanceModal()">{{ _('Add') }}</button>
+                    </div>
                 </div>
             </div>
             <nav class="nav-links">
                 <a href="#dashboard">{{ _('Dashboard') }}</a>
-                <a href="#expenses">{{ _('Manage Expenses') }}</a>
+                <a href="{{ url_for('manage_tags') }}">{{ _('Manage Tags') }}</a>
                 <a href="#budgets">{{ _('Manage Budgets') }}</a>
                 <a href="#reports">{{ _('Reports & Analytics') }}</a>
                 <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
@@ -42,6 +46,7 @@
                         <tr>
                             <th>{{ _('Date') }}</th>
                             <th>{{ _('Category') }}</th>
+                            <th>{{ _('Tag') }}</th>
                             <th>{{ _('Amount') }}</th>
                             <th>{{ _('Description') }}</th>
                             <th>{{ _('Actions') }}</th>
@@ -53,10 +58,11 @@
                             <tr>
                                 <td>{{ transaction[1] }}</td>
                                 <td>{{ transaction[5] }}</td>
+                                <td>{{ transaction[7] if transaction[7] else 'None' }}</td>
                                 <td class="amount-negative">-${{ "%.2f"|format(transaction[2]) }}</td>
                                 <td>{{ transaction[3] }}</td>
                                 <td>
-                                    <button type="button" class="btn-edit" onclick="openEditModal('{{ transaction[0] }}', '{{ transaction[1] }}', '{{ transaction[2] }}', '{{ transaction[3] }}', '{{ transaction[6] }}')">{{ _('Edit') }}</button>
+                                    <button type="button" class="btn-edit" data-transaction='{{ transaction[0] }}' data-date='{{ transaction[1] }}' data-amount='{{ transaction[2] }}' data-description='{{ transaction[3] }}' data-category='{{ transaction[6] }}' data-tag='{{ transaction[8] if transaction[8] else "" }}' onclick="openEditModalFromData(this)">{{ _('Edit') }}</button>
                                     <form action="{{ url_for('delete_transaction') }}" method="POST" style="display: inline;">
                                         <input type="hidden" name="transaction_id" value="{{ transaction[0] }}">
                                         <button type="submit" class="btn-delete" onclick="return confirmDelete()">{{ _('Delete') }}</button>
@@ -66,7 +72,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #666; padding: 2rem;">{{ _('No transactions found. Add your first expense!') }}</td>
+                                <td colspan="6" style="text-align: center; color: #666; padding: 2rem;">{{ _('No transactions found. Add your first expense!') }}</td>
                             </tr>
                         {% endif %}
                     </tbody>
@@ -143,6 +149,14 @@
                     {% endfor %}
                 </select>
                 
+                <label for="tag_id">{{ _('Tag (Optional):') }}</label>
+                <select name="tag_id" id="tag_id">
+                    <option value="">{{ _('None') }}</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag[0] }}">{{ tag[1] }}</option>
+                    {% endfor %}
+                </select>
+                
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Add Transaction') }}</button>
                     <button type="button" class="btn-secondary" onclick="closeAddModal()">{{ _('Cancel') }}</button>
@@ -179,9 +193,59 @@
                     {% endfor %}
                 </select>
                 
+                <label for="edit_tag_id">{{ _('Tag (Optional):') }}</label>
+                <select name="tag_id" id="edit_tag_id">
+                    <option value="">{{ _('None') }}</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag[0] }}">{{ tag[1] }}</option>
+                    {% endfor %}
+                </select>
+                
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Update Transaction') }}</button>
                     <button type="button" class="btn-secondary" onclick="closeEditModal()">{{ _('Cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Balance Modal -->
+    <div id="editBalanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ _('Edit Balance') }}</h2>
+                <span class="close" onclick="closeEditBalanceModal()">&times;</span>
+            </div>
+            <form action="{{ url_for('edit_balance') }}" method="post">
+                <div class="msg">{{ msg }}</div>
+                
+                <label for="new_balance">{{ _('New Balance Amount:') }}</label>
+                <input type="number" name="new_balance" id="new_balance" step="0.01" min="0" placeholder="{{ _('Enter new balance') }}" required>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">{{ _('Update Balance') }}</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditBalanceModal()">{{ _('Cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Balance Modal -->
+    <div id="addBalanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ _('Add Balance') }}</h2>
+                <span class="close" onclick="closeAddBalanceModal()">&times;</span>
+            </div>
+            <form action="{{ url_for('add_balance') }}" method="post">
+                <div class="msg">{{ msg }}</div>
+                
+                <label for="amount_to_add">{{ _('Amount to Add:') }}</label>
+                <input type="number" name="amount_to_add" id="amount_to_add" step="0.01" min="0" placeholder="{{ _('Enter amount to add') }}" required>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">{{ _('Add to Balance') }}</button>
+                    <button type="button" class="btn-secondary" onclick="closeAddBalanceModal()">{{ _('Cancel') }}</button>
                 </div>
             </form>
         </div>
@@ -197,13 +261,35 @@
             document.getElementById('addTransactionModal').style.display = 'none';
         }
 
-        function openEditModal(transactionId, date, amount, description, categoryId) {
+        function openEditModal(transactionId, date, amount, description, categoryId, tagId) {
             // Populate the edit modal with transaction data
             document.getElementById('edit_transaction_id').value = transactionId;
             document.getElementById('edit_date').value = date;
             document.getElementById('edit_amount').value = amount;
             document.getElementById('edit_description').value = description;
             document.getElementById('edit_category_id').value = categoryId;
+            document.getElementById('edit_tag_id').value = tagId || '';
+            
+            // Show the modal
+            document.getElementById('editTransactionModal').style.display = 'block';
+        }
+
+        function openEditModalFromData(button) {
+            // Get data from button attributes
+            const transactionId = button.getAttribute('data-transaction');
+            const date = button.getAttribute('data-date');
+            const amount = button.getAttribute('data-amount');
+            const description = button.getAttribute('data-description');
+            const categoryId = button.getAttribute('data-category');
+            const tagId = button.getAttribute('data-tag');
+            
+            // Populate the edit modal with transaction data
+            document.getElementById('edit_transaction_id').value = transactionId;
+            document.getElementById('edit_date').value = date;
+            document.getElementById('edit_amount').value = amount;
+            document.getElementById('edit_description').value = description;
+            document.getElementById('edit_category_id').value = categoryId;
+            document.getElementById('edit_tag_id').value = tagId || '';
             
             // Show the modal
             document.getElementById('editTransactionModal').style.display = 'block';
@@ -217,11 +303,20 @@
         window.onclick = function(event) {
             var addModal = document.getElementById('addTransactionModal');
             var editModal = document.getElementById('editTransactionModal');
+            var editBalanceModal = document.getElementById('editBalanceModal');
+            var addBalanceModal = document.getElementById('addBalanceModal');
+            
             if (event.target == addModal) {
                 addModal.style.display = 'none';
             }
             if (event.target == editModal) {
                 editModal.style.display = 'none';
+            }
+            if (event.target == editBalanceModal) {
+                editBalanceModal.style.display = 'none';
+            }
+            if (event.target == addBalanceModal) {
+                addBalanceModal.style.display = 'none';
             }
         }
 
@@ -236,6 +331,23 @@
 
         function setBudget() {
             window.location.href = "{{ url_for('set_budget') }}";
+        }
+
+        // Balance modal functions
+        function openEditBalanceModal() {
+            document.getElementById('editBalanceModal').style.display = 'block';
+        }
+
+        function closeEditBalanceModal() {
+            document.getElementById('editBalanceModal').style.display = 'none';
+        }
+
+        function openAddBalanceModal() {
+            document.getElementById('addBalanceModal').style.display = 'block';
+        }
+
+        function closeAddBalanceModal() {
+            document.getElementById('addBalanceModal').style.display = 'none';
         }
     </script>
 </body>

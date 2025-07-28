@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Tag Management') }}</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header/Navigation -->
+        <div class="header">
+            <div class="nav-bar">
+                <p class="welcome-text">Welcome, {{ username }}!</p>
+                <div class="balance-display">
+                    <span class="balance-label">{{ _('Current Balance:') }}</span>
+                    <span class="balance-amount {% if current_balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        ${{ "%.2f"|format(current_balance) }}
+                    </span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('home') }}">{{ _('Dashboard') }}</a>
+                <a href="{{ url_for('manage_tags') }}" style="background: rgba(33, 150, 243, 0.1);">{{ _('Manage Tags') }}</a>
+                <a href="#budgets">{{ _('Manage Budgets') }}</a>
+                <a href="#reports">{{ _('Reports & Analytics') }}</a>
+                <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Tags Overview Section -->
+            <div class="expense-section">
+                <div class="section-header">
+                    <h2 class="section-title">{{ _('Tag Management') }}</h2>
+                    <button type="button" class="btn-primary" onclick="openAddTagModal()">{{ _('Add New Tag') }}</button>
+                </div>
+                
+                <div class="tags-grid">
+                    {% if tags %}
+                        {% for tag in tags %}
+                        <div class="tag-card">
+                            <div class="tag-header">
+                                <h3 class="tag-name">{{ tag[1] }}</h3>
+                                <div class="tag-actions">
+                                    <button type="button" class="btn-edit" onclick="openEditTagModal('{{ tag[0] }}', '{{ tag[1] }}')">{{ _('Edit') }}</button>
+                                    <button type="button" class="btn-delete" onclick="deleteTag('{{ tag[0] }}')">{{ _('Delete') }}</button>
+                                </div>
+                            </div>
+                            <div class="tag-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">{{ _('Total Amount:') }}</span>
+                                    <span class="stat-value amount-negative">${{ "%.2f"|format(tag[2]) }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">{{ _('Transaction Count:') }}</span>
+                                    <span class="stat-value">{{ tag[3] }}</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="viewTagTransactions('{{ tag[0] }}', '{{ tag[1] }}')">{{ _('View Transactions') }}</button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-tags">
+                            <p>{{ _('No tags found. Create your first tag!') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="card-title">{{ _('Quick Actions') }}</h3>
+                    <div class="action-buttons">
+                        <button type="button" class="btn-secondary" onclick="openAddTagModal()">{{ _('Add New Tag') }}</button>
+                        <a href="{{ url_for('home') }}" class="btn-secondary">{{ _('Back to Dashboard') }}</a>
+                    </div>
+                </div>
+
+                <!-- Tag Summary -->
+                <div class="summary-card">
+                    <h3 class="card-title">{{ _('Tag Summary') }}</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Total Tags') }}</span>
+                        <span class="summary-value">{{ tag_count }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Total Tagged Expenses') }}</span>
+                        <span class="summary-value amount-negative">${{ "%.2f"|format(total_tagged_amount) }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Most Used Tag') }}</span>
+                        <span class="summary-value">{{ most_used_tag if most_used_tag else 'None' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Tag Modal -->
+    <div id="addTagModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ _('Add New Tag') }}</h2>
+                <span class="close" onclick="closeAddTagModal()">&times;</span>
+            </div>
+            <form action="{{ url_for('add_tag') }}" method="post">
+                <div class="msg">{{ msg }}</div>
+                
+                <label for="tag_name">{{ _('Tag Name:') }}</label>
+                <input type="text" name="tag_name" id="tag_name" placeholder="{{ _('Enter tag name') }}" required>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">{{ _('Add Tag') }}</button>
+                    <button type="button" class="btn-secondary" onclick="closeAddTagModal()">{{ _('Cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Tag Modal -->
+    <div id="editTagModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ _('Edit Tag') }}</h2>
+                <span class="close" onclick="closeEditTagModal()">&times;</span>
+            </div>
+            <form action="{{ url_for('edit_tag') }}" method="post">
+                <div class="msg">{{ msg }}</div>
+                
+                <input type="hidden" name="tag_id" id="edit_tag_id">
+                
+                <label for="edit_tag_name">{{ _('Tag Name:') }}</label>
+                <input type="text" name="tag_name" id="edit_tag_name" placeholder="{{ _('Enter tag name') }}" required>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">{{ _('Update Tag') }}</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditTagModal()">{{ _('Cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tag Transactions Modal -->
+    <div id="tagTransactionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tagTransactionsTitle">{{ _('Tag Transactions') }}</h2>
+                <span class="close" onclick="closeTagTransactionsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="tagTransactionsContent">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        function openAddTagModal() {
+            document.getElementById('addTagModal').style.display = 'block';
+        }
+
+        function closeAddTagModal() {
+            document.getElementById('addTagModal').style.display = 'none';
+        }
+
+        function openEditTagModal(tagId, tagName) {
+            document.getElementById('edit_tag_id').value = tagId;
+            document.getElementById('edit_tag_name').value = tagName;
+            document.getElementById('editTagModal').style.display = 'block';
+        }
+
+        function closeEditTagModal() {
+            document.getElementById('editTagModal').style.display = 'none';
+        }
+
+        function closeTagTransactionsModal() {
+            document.getElementById('tagTransactionsModal').style.display = 'none';
+        }
+
+        function deleteTag(tagId) {
+            if (confirm("{{ _('Are you sure you want to delete this tag? This will remove the tag from all associated transactions.') }}")) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ url_for('delete_tag') }}";
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'tag_id';
+                input.value = tagId;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function viewTagTransactions(tagId, tagName) {
+            document.getElementById('tagTransactionsTitle').textContent = tagName + ' - {{ _("Transactions") }}';
+            document.getElementById('tagTransactionsModal').style.display = 'block';
+            
+            // Load transactions for this tag
+            fetch(`{{ url_for('get_tag_transactions') }}?tag_id=${tagId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('tagTransactionsContent');
+                    if (data.transactions && data.transactions.length > 0) {
+                        let html = '<table class="expense-table"><thead><tr><th>{{ _("Date") }}</th><th>{{ _("Category") }}</th><th>{{ _("Amount") }}</th><th>{{ _("Description") }}</th></tr></thead><tbody>';
+                        data.transactions.forEach(transaction => {
+                            html += `<tr><td>${transaction.date}</td><td>${transaction.category}</td><td class="amount-negative">-$${parseFloat(transaction.amount).toFixed(2)}</td><td>${transaction.description}</td></tr>`;
+                        });
+                        html += '</tbody></table>';
+                        content.innerHTML = html;
+                    } else {
+                        content.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">{{ _("No transactions found for this tag.") }}</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('tagTransactionsContent').innerHTML = '<p style="text-align: center; color: #f44336; padding: 2rem;">{{ _("Error loading transactions.") }}</p>';
+                });
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var addModal = document.getElementById('addTagModal');
+            var editModal = document.getElementById('editTagModal');
+            var transactionsModal = document.getElementById('tagTransactionsModal');
+            
+            if (event.target == addModal) {
+                addModal.style.display = 'none';
+            }
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
+            }
+            if (event.target == transactionsModal) {
+                transactionsModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

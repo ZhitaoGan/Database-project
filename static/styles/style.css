@@ -210,6 +210,117 @@ input[type="submit"]:hover, .btn:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
+.balance-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.btn-edit-balance,
+.btn-add-balance {
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-edit-balance:hover {
+    background: #1976d2;
+}
+
+.btn-add-balance {
+    background: #4caf50;
+}
+
+.btn-add-balance:hover {
+    background: #388e3c;
+}
+
+/* Tag Management Styles */
+.tags-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.tag-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tag-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 32px rgba(0,0,0,0.15);
+}
+
+.tag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tag-name {
+    color: #2196f3;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tag-stats {
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e3f2fd;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.no-tags {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
 .balance-intro {
     text-align: center;
     color: #666;
@@ -404,6 +515,18 @@ input[type="submit"]:hover, .btn:hover {
     
     .nav-links {
         gap: 1rem;
+    }
+    
+    .balance-display {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-left: 0;
+        margin-top: 1rem;
+    }
+    
+    .balance-actions {
+        margin-left: 0;
     }
 }
 
