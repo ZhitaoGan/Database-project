@@ -419,3 +419,199 @@ msgstr "Balance must be greater than 0"
 msgid "Value must be greater than or equal to 0.01"
 msgstr "Value must be greater than or equal to 0.01"
 
+#: templates/budgets.html:5
+msgid "Budget Management"
+msgstr "Budget Management"
+
+#: templates/budgets.html:36
+msgid "Add New Budget"
+msgstr "Add New Budget"
+
+#: templates/budgets.html:52
+msgid "Budget Amount:"
+msgstr "Budget Amount:"
+
+#: templates/budgets.html:56
+msgid "Spent:"
+msgstr "Spent:"
+
+#: templates/budgets.html:60
+msgid "Remaining:"
+msgstr "Remaining:"
+
+#: templates/budgets.html:64
+msgid "Progress:"
+msgstr "Progress:"
+
+#: templates/budgets.html:72
+msgid "Period:"
+msgstr "Period:"
+
+#: templates/budgets.html:78
+msgid "No budgets found. Create your first budget!"
+msgstr "No budgets found. Create your first budget!"
+
+#: templates/budgets.html:84
+msgid "Budget Summary"
+msgstr "Budget Summary"
+
+#: templates/budgets.html:86
+msgid "Total Budgets"
+msgstr "Total Budgets"
+
+#: templates/budgets.html:90
+msgid "Total Budget Amount"
+msgstr "Total Budget Amount"
+
+#: templates/budgets.html:94
+msgid "Total Spent"
+msgstr "Total Spent"
+
+#: templates/budgets.html:98
+msgid "Overall Progress"
+msgstr "Overall Progress"
+
+#: templates/budgets.html:106
+msgid "Add New Budget"
+msgstr "Add New Budget"
+
+#: templates/budgets.html:112
+msgid "Budget Name:"
+msgstr "Budget Name:"
+
+#: templates/budgets.html:113
+msgid "Enter budget name"
+msgstr "Enter budget name"
+
+#: templates/budgets.html:116
+msgid "Add Budget"
+msgstr "Add Budget"
+
+#: templates/budgets.html:127
+msgid "Edit Budget"
+msgstr "Edit Budget"
+
+#: templates/budgets.html:135
+msgid "Budget Name:"
+msgstr "Budget Name:"
+
+#: templates/budgets.html:117
+msgid "Update Budget"
+msgstr "Update Budget"
+
+#: templates/budgets.html:145
+msgid "Are you sure you want to delete this budget?"
+msgstr "Are you sure you want to delete this budget?"
+
+#: templates/index.html:javascript
+msgid "Is this a recurring transaction?"
+msgstr "Is this a recurring transaction?"
+
+#: templates/index.html:javascript
+msgid "Frequency:"
+msgstr "Frequency:"
+
+#: templates/index.html:javascript
+msgid "Daily"
+msgstr "Daily"
+
+#: templates/index.html:javascript
+msgid "Weekly"
+msgstr "Weekly"
+
+#: templates/index.html:javascript
+msgid "Monthly"
+msgstr "Monthly"
+
+#: templates/index.html:javascript
+msgid "Yearly"
+msgstr "Yearly"
+
+#: templates/index.html:javascript
+msgid "Next Date:"
+msgstr "Next Date:"
+
+msgid "Friends"
+msgstr "Friends"
+
+msgid "Add Friend"
+msgstr "Add Friend"
+
+msgid "Friend Username:"
+msgstr "Friend Username:"
+
+msgid "Enter friend username"
+msgstr "Enter friend username"
+
+msgid "Send Request"
+msgstr "Send Request"
+
+msgid "Total Expenses:"
+msgstr "Total Expenses:"
+
+msgid "Transaction Count:"
+msgstr "Transaction Count:"
+
+msgid "Most Used Category:"
+msgstr "Most Used Category:"
+
+msgid "View Details"
+msgstr "View Details"
+
+msgid "Accept"
+msgstr "Accept"
+
+msgid "Reject"
+msgstr "Reject"
+
+msgid "Remove Friend"
+msgstr "Remove Friend"
+
+msgid "No friends found. Add your first friend!"
+msgstr "No friends found. Add your first friend!"
+
+msgid "Friends Summary"
+msgstr "Friends Summary"
+
+msgid "Total Friends"
+msgstr "Total Friends"
+
+msgid "Pending Requests"
+msgstr "Pending Requests"
+
+msgid "Average Friend Expenses"
+msgstr "Average Friend Expenses"
+
+msgid "Are you sure you want to remove this friend?"
+msgstr "Are you sure you want to remove this friend?"
+
+msgid "Friend Details"
+msgstr "Friend Details"
+
+msgid "Back to Friends"
+msgstr "Back to Friends"
+
+msgid "Largest Expense:"
+msgstr "Largest Expense:"
+
+msgid "Recent Transactions"
+msgstr "Recent Transactions"
+
+msgid "No transactions found."
+msgstr "No transactions found."
+
+msgid "Friend Statistics"
+msgstr "Friend Statistics"
+
+msgid "Average Transaction:"
+msgstr "Average Transaction:"
+
+msgid "This Month:"
+msgstr "This Month:"
+
+msgid "Last Month:"
+msgstr "Last Month:"
+
+msgid "You will be able to view your friend's details after they accept your request."
+msgstr "You will be able to view your friend's details after they accept your request."
+

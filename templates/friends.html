@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Friends') }}</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header/Navigation -->
+        <div class="header">
+            <div class="nav-bar">
+                <p class="welcome-text">{{ _('Welcome,') }} {{ username }}!</p>
+                <div class="balance-display">
+                    <span class="balance-label">{{ _('Current Balance:') }}</span>
+                    <span class="balance-amount {% if current_balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        ${{ "%.2f"|format(current_balance) }}
+                    </span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('home') }}">{{ _('Dashboard') }}</a>
+                <a href="{{ url_for('manage_tags') }}">{{ _('Manage Tags') }}</a>
+                <a href="{{ url_for('manage_budgets') }}">{{ _('Manage Budgets') }}</a>
+                <a href="{{ url_for('manage_friends') }}" style="background: rgba(33, 150, 243, 0.1);">{{ _('Friends') }}</a>
+                <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Friends Overview Section -->
+            <div class="expense-section">
+                <div class="section-header">
+                    <h2 class="section-title">{{ _('Friends') }}</h2>
+                    <button type="button" class="btn-primary" onclick="openAddFriendModal()">{{ _('Add Friend') }}</button>
+                </div>
+                
+                <div class="friends-grid">
+                    {% if friends %}
+                        {% for friend in friends %}
+                        <div class="friend-card">
+                            <div class="friend-header">
+                                <h3 class="friend-name">{{ friend[1] }}</h3>
+                                <div class="friend-status">
+                                    <span class="status-badge status-{{ friend[2] }}">{{ friend[2] }}</span>
+                                </div>
+                            </div>
+                            <div class="friend-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">{{ _('Total Expenses:') }}</span>
+                                    <span class="stat-value amount-negative">${{ "%.2f"|format(friend[3]) }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">{{ _('Transaction Count:') }}</span>
+                                    <span class="stat-value">{{ friend[4] }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">{{ _('Most Used Category:') }}</span>
+                                    <span class="stat-value">{{ friend[5] if friend[5] else 'None' }}</span>
+                                </div>
+                            </div>
+                            <div class="friend-actions">
+                                {% if friend[2] == 'pending' %}
+                                    {% if friend[6] == 'sent' %}
+                                        <!-- User sent the request - show waiting message -->
+                                        <div class="pending-message">
+                                            <p>{{ _('You will be able to view your friend\'s details after they accept your request.') }}</p>
+                                        </div>
+                                    {% else %}
+                                        <!-- User received the request - show accept/reject buttons -->
+                                        <button type="button" class="btn-primary" onclick="respondToRequest('{{ friend[0] }}', 'accept')">{{ _('Accept') }}</button>
+                                        <button type="button" class="btn-delete" onclick="respondToRequest('{{ friend[0] }}', 'reject')">{{ _('Reject') }}</button>
+                                    {% endif %}
+                                {% elif friend[2] == 'accepted' %}
+                                    <!-- Both users can view details and remove friend -->
+                                    <a href="{{ url_for('view_friend', friend_id=friend[0]) }}" class="btn-secondary">{{ _('View Details') }}</a>
+                                    <button type="button" class="btn-delete" onclick="removeFriend('{{ friend[0] }}')">{{ _('Remove Friend') }}</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-friends">
+                            <p>{{ _('No friends found. Add your first friend!') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="card-title">{{ _('Quick Actions') }}</h3>
+                    <div class="action-buttons">
+                        <button type="button" class="btn-secondary" onclick="openAddFriendModal()">{{ _('Add Friend') }}</button>
+                        <a href="{{ url_for('home') }}" class="btn-secondary">{{ _('Back to Dashboard') }}</a>
+                    </div>
+                </div>
+
+                <!-- Friends Summary -->
+                <div class="summary-card">
+                    <h3 class="card-title">{{ _('Friends Summary') }}</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Total Friends') }}</span>
+                        <span class="summary-value">{{ accepted_friends_count }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Pending Requests') }}</span>
+                        <span class="summary-value">{{ pending_requests_count }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Average Friend Expenses') }}</span>
+                        <span class="summary-value amount-negative">${{ "%.2f"|format(avg_friend_expenses) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Friend Modal -->
+    <div id="addFriendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ _('Add Friend') }}</h2>
+                <span class="close" onclick="closeAddFriendModal()">&times;</span>
+            </div>
+            <form action="{{ url_for('add_friend') }}" method="post">
+                <div class="msg">{{ msg }}</div>
+                
+                <label for="friend_username">{{ _('Friend Username:') }}</label>
+                <input type="text" name="friend_username" id="friend_username" placeholder="{{ _('Enter friend username') }}" required>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">{{ _('Send Request') }}</button>
+                    <button type="button" class="btn-secondary" onclick="closeAddFriendModal()">{{ _('Cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        function openAddFriendModal() {
+            document.getElementById('addFriendModal').style.display = 'block';
+        }
+
+        function closeAddFriendModal() {
+            document.getElementById('addFriendModal').style.display = 'none';
+        }
+
+        function respondToRequest(friendId, action) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('respond_to_friend_request') }}";
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'friend_id';
+            input.value = friendId;
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = action;
+            
+            form.appendChild(input);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function removeFriend(friendId) {
+            if (confirm("{{ _('Are you sure you want to remove this friend?') }}")) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ url_for('remove_friend') }}";
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'friend_id';
+                input.value = friendId;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var addModal = document.getElementById('addFriendModal');
+            
+            if (event.target == addModal) {
+                addModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -312,3 +312,165 @@ msgstr "余额必须大于0"
 msgid "Value must be greater than or equal to 0.01"
 msgstr "金额必须大于或等于0.01"
 
+msgid "Budget Management"
+msgstr "预算管理"
+
+msgid "Add New Budget"
+msgstr "添加新预算"
+
+msgid "Budget Amount:"
+msgstr "预算金额："
+
+msgid "Spent:"
+msgstr "已支出："
+
+msgid "Remaining:"
+msgstr "剩余："
+
+msgid "Progress:"
+msgstr "进度："
+
+msgid "Period:"
+msgstr "期间："
+
+msgid "No budgets found. Create your first budget!"
+msgstr "未找到预算。创建您的第一个预算！"
+
+msgid "Budget Summary"
+msgstr "预算摘要"
+
+msgid "Total Budgets"
+msgstr "预算总数"
+
+msgid "Total Budget Amount"
+msgstr "总预算金额"
+
+msgid "Total Spent"
+msgstr "总支出"
+
+msgid "Overall Progress"
+msgstr "总体进度"
+
+msgid "Budget Name:"
+msgstr "预算名称："
+
+msgid "Enter budget name"
+msgstr "输入预算名称"
+
+msgid "Add Budget"
+msgstr "添加预算"
+
+msgid "Edit Budget"
+msgstr "编辑预算"
+
+msgid "Update Budget"
+msgstr "更新预算"
+
+msgid "Are you sure you want to delete this budget?"
+msgstr "您确定要删除此预算吗？"
+
+msgid "Is this a recurring transaction?"
+msgstr "这是定期交易吗？"
+
+msgid "Frequency:"
+msgstr "频率："
+
+msgid "Daily"
+msgstr "每日"
+
+msgid "Weekly"
+msgstr "每周"
+
+msgid "Monthly"
+msgstr "每月"
+
+msgid "Yearly"
+msgstr "每年"
+
+msgid "Next Date:"
+msgstr "下次日期："
+
+msgid "Friends"
+msgstr "朋友"
+
+msgid "Add Friend"
+msgstr "添加朋友"
+
+msgid "Friend Username:"
+msgstr "朋友用户名："
+
+msgid "Enter friend username"
+msgstr "输入朋友用户名"
+
+msgid "Send Request"
+msgstr "发送请求"
+
+msgid "Total Expenses:"
+msgstr "总支出："
+
+msgid "Transaction Count:"
+msgstr "交易数量："
+
+msgid "Most Used Category:"
+msgstr "最常用类别："
+
+msgid "View Details"
+msgstr "查看详情"
+
+msgid "Accept"
+msgstr "接受"
+
+msgid "Reject"
+msgstr "拒绝"
+
+msgid "Remove Friend"
+msgstr "移除朋友"
+
+msgid "No friends found. Add your first friend!"
+msgstr "未找到朋友。添加您的第一个朋友！"
+
+msgid "Friends Summary"
+msgstr "朋友摘要"
+
+msgid "Total Friends"
+msgstr "朋友总数"
+
+msgid "Pending Requests"
+msgstr "待处理请求"
+
+msgid "Average Friend Expenses"
+msgstr "朋友平均支出"
+
+msgid "Are you sure you want to remove this friend?"
+msgstr "您确定要移除这个朋友吗？"
+
+msgid "Friend Details"
+msgstr "朋友详情"
+
+msgid "Back to Friends"
+msgstr "返回朋友列表"
+
+msgid "Largest Expense:"
+msgstr "最大支出："
+
+msgid "Recent Transactions"
+msgstr "最近交易"
+
+msgid "No transactions found."
+msgstr "未找到交易记录。"
+
+msgid "Friend Statistics"
+msgstr "朋友统计"
+
+msgid "Average Transaction:"
+msgstr "平均交易："
+
+msgid "This Month:"
+msgstr "本月："
+
+msgid "Last Month:"
+msgstr "上月："
+
+msgid "You will be able to view your friend's details after they accept your request."
+msgstr "您的朋友接受请求后，您就可以查看他们的详细信息。"
+

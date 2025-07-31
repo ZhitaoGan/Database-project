@@ -26,8 +26,8 @@
             <nav class="nav-links">
                 <a href="#dashboard">{{ _('Dashboard') }}</a>
                 <a href="{{ url_for('manage_tags') }}">{{ _('Manage Tags') }}</a>
-                <a href="#budgets">{{ _('Manage Budgets') }}</a>
-                <a href="#reports">{{ _('Reports & Analytics') }}</a>
+                <a href="{{ url_for('manage_budgets') }}">{{ _('Manage Budgets') }}</a>
+                <a href="{{ url_for('manage_friends') }}">{{ _('Friends') }}</a>
                 <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
             </nav>
         </div>
@@ -170,6 +170,33 @@
                     {% if not tags %}
                         <p class="no-tags-message">{{ _('No tags available. Create tags in the Manage Tags section.') }}</p>
                     {% endif %}
+                </div>
+                
+                <div class="recurring-section">
+                    <label for="is_recurring">{{ _('Is this a recurring transaction?') }}</label>
+                    <div class="recurring-options">
+                        <div class="radio-option">
+                            <input type="radio" name="is_recurring" id="recurring_no" value="no" checked onchange="toggleRecurringOptions()">
+                            <label for="recurring_no">{{ _('No') }}</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="is_recurring" id="recurring_yes" value="yes" onchange="toggleRecurringOptions()">
+                            <label for="recurring_yes">{{ _('Yes') }}</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="recurring-options" class="recurring-options-container" style="display: none;">
+                    <label for="frequency">{{ _('Frequency:') }}</label>
+                    <select name="frequency" id="frequency">
+                        <option value="daily">{{ _('Daily') }}</option>
+                        <option value="weekly">{{ _('Weekly') }}</option>
+                        <option value="monthly" selected>{{ _('Monthly') }}</option>
+                        <option value="yearly">{{ _('Yearly') }}</option>
+                    </select>
+                    
+                    <label for="next_date">{{ _('Next Date:') }}</label>
+                    <input type="date" name="next_date" id="next_date" min="{{ today_date }}">
                 </div>
                 
                 <div class="modal-buttons">
@@ -367,7 +394,7 @@
         }
 
         function setBudget() {
-            window.location.href = "{{ url_for('set_budget') }}";
+            window.location.href = "{{ url_for('manage_budgets') }}";
         }
 
         // Balance modal functions
@@ -403,6 +430,17 @@
         function clearAmountError(input) {
             const errorDiv = input.id === 'amount' ? document.getElementById('amount-error') : document.getElementById('edit-amount-error');
             errorDiv.style.display = 'none';
+        }
+
+        function toggleRecurringOptions() {
+            const isRecurring = document.querySelector('input[name="is_recurring"]:checked').value;
+            const recurringOptions = document.getElementById('recurring-options');
+            
+            if (isRecurring === 'yes') {
+                recurringOptions.style.display = 'block';
+            } else {
+                recurringOptions.style.display = 'none';
+            }
         }
     </script>
 </body>

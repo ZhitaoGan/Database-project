@@ -232,10 +232,62 @@ def get_user_current_balance(user_id):
     current_balance = total_balance - transaction_sum
     return current_balance
 
+def process_recurring_transactions():
+    """Process recurring transactions and create new transactions"""
+    from datetime import date, timedelta
+    
+    cur = mysql.connection.cursor()
+    today = date.today()
+    
+    # Get all recurring transactions that are due
+    cur.execute("""
+        SELECT recurring_id, amount, description, frequency, next_date, user_id, category_id
+        FROM Recurring_Transactions 
+        WHERE next_date <= %s
+    """, (today,))
+    
+    recurring_transactions = cur.fetchall()
+    
+    for recurring in recurring_transactions:
+        recurring_id, amount, description, frequency, next_date, user_id, category_id = recurring
+        
+        # Create the transaction
+        cur.execute("""
+            INSERT INTO Transactions (date, amount, description, user_id, category_id) 
+            VALUES (%s, %s, %s, %s, %s)
+        """, (next_date, amount, description, user_id, category_id))
+        
+        # Calculate next date based on frequency
+        if frequency == 'daily':
+            new_next_date = next_date + timedelta(days=1)
+        elif frequency == 'weekly':
+            new_next_date = next_date + timedelta(weeks=1)
+        elif frequency == 'monthly':
+            # Add one month (simplified calculation)
+            if next_date.month == 12:
+                new_next_date = next_date.replace(year=next_date.year + 1, month=1)
+            else:
+                new_next_date = next_date.replace(month=next_date.month + 1)
+        elif frequency == 'yearly':
+            new_next_date = next_date.replace(year=next_date.year + 1)
+        
+        # Update the next_date for this recurring transaction
+        cur.execute("""
+            UPDATE Recurring_Transactions 
+            SET next_date = %s 
+            WHERE recurring_id = %s
+        """, (new_next_date, recurring_id))
+    
+    mysql.connection.commit()
+    cur.close()
+
 # Routes
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'logged_in' in session:
+        # Process any due recurring transactions
+        process_recurring_transactions()
+        
         transactions = grab_user_transactions(session['user_id'])
         statistics = get_user_statistics(session['user_id'])
         current_balance = get_user_current_balance(session['user_id'])
@@ -244,7 +296,9 @@ def home():
         categories = get_category_names()
         tags = get_tag_names(session['user_id'])
         
-        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, tags=tags, current_balance=current_balance, locale=str(get_locale()))
+        from datetime import date
+        today_date = date.today().isoformat()
+        return render_template('index.html', username=session.get('username', ''), transactions=transactions, statistics=statistics, categories=categories, tags=tags, current_balance=current_balance, locale=str(get_locale()), today_date=today_date)
     else:
         return redirect(url_for('login'))
 
@@ -338,6 +392,7 @@ def add_transaction():
     description = request.form['description']
     category_id = request.form['category_id']
     tag_ids = request.form.getlist('tag_ids')  # Get multiple tag IDs
+    is_recurring = request.form.get('is_recurring', 'no')
     
     # Validate amount is greater than 0
     try:
@@ -348,6 +403,8 @@ def add_transaction():
         return redirect(url_for('home'))
     
     cur = mysql.connection.cursor()
+    
+    # Add the transaction
     cur.execute("""
         INSERT INTO Transactions (date, amount, description, user_id, category_id) 
         VALUES (%s, %s, %s, %s, %s)
@@ -368,6 +425,16 @@ def add_transaction():
                     INSERT INTO Tags_and_Transactions (tag_id, transaction_id) 
                     VALUES (%s, %s)
                 """, (tag_id, transaction_id))
+    
+    # If this is a recurring transaction, add it to Recurring_Transactions
+    if is_recurring == 'yes':
+        frequency = request.form.get('frequency', 'monthly')
+        next_date = request.form.get('next_date', date)
+        
+        cur.execute("""
+            INSERT INTO Recurring_Transactions (amount, description, frequency, next_date, user_id, category_id) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (amount, description, frequency, next_date, session['user_id'], category_id))
     
     mysql.connection.commit()
     cur.close()
@@ -643,13 +710,378 @@ def export_csv():
     # TODO: Implement CSV export functionality
     return redirect(url_for('home'))
 
-@app.route('/set_budget')
-def set_budget():
+@app.route('/manage_budgets')
+def manage_budgets():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
     
-    # TODO: Implement budget setting functionality
-    return redirect(url_for('home'))
+    budgets = get_user_budgets_with_stats(session['user_id'])
+    categories = get_category_names()
+    current_balance = get_user_current_balance(session['user_id'])
+    
+    # Calculate budget statistics
+    budget_count = len(budgets)
+    total_budget_amount = sum(float(budget[2]) for budget in budgets) if budgets else 0.0
+    total_spent = sum(float(budget[6]) for budget in budgets) if budgets else 0.0
+    overall_progress = (total_spent / total_budget_amount * 100) if total_budget_amount > 0 else 0.0
+    
+    return render_template('budgets.html', 
+                         username=session.get('username', ''), 
+                         budgets=budgets, 
+                         categories=categories,
+                         budget_count=budget_count,
+                         total_budget_amount=total_budget_amount,
+                         total_spent=total_spent,
+                         overall_progress=overall_progress,
+                         current_balance=current_balance,
+                         locale=str(get_locale()))
+
+def get_user_budgets_with_stats(user_id):
+    """Get user's budgets with spending statistics"""
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT b.budget_id, b.name, b.amount, b.start_date, b.end_date, c.category_name,
+               COALESCE(SUM(t.amount), 0) as total_spent,
+               (b.amount - COALESCE(SUM(t.amount), 0)) as remaining,
+               (COALESCE(SUM(t.amount), 0) / b.amount * 100) as progress_percentage
+        FROM Budgets b
+        INNER JOIN Category c ON b.category_id = c.category_id
+        LEFT JOIN Transactions t ON b.category_id = t.category_id 
+            AND t.user_id = %s 
+            AND t.date BETWEEN b.start_date AND b.end_date
+        WHERE b.user_id = %s
+        GROUP BY b.budget_id, b.name, b.amount, b.start_date, b.end_date, c.category_name
+        ORDER BY b.start_date DESC
+    """, (user_id, user_id))
+    budgets = cur.fetchall()
+    cur.close()
+    return budgets
+
+@app.route('/add_budget', methods=['POST'])
+def add_budget():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    budget_name = request.form['budget_name'].strip()
+    category_id = request.form['category_id']
+    amount = request.form['amount']
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+    
+    # Validate amount is greater than 0
+    try:
+        amount_float = float(amount)
+        if amount_float <= 0:
+            return redirect(url_for('manage_budgets'))
+    except ValueError:
+        return redirect(url_for('manage_budgets'))
+    
+    # Validate dates
+    if start_date >= end_date:
+        return redirect(url_for('manage_budgets'))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check if budget already exists for this category and period
+    cur.execute("""
+        SELECT * FROM Budgets 
+        WHERE user_id = %s AND category_id = %s 
+        AND ((start_date <= %s AND end_date >= %s) OR (start_date <= %s AND end_date >= %s))
+    """, (session['user_id'], category_id, start_date, start_date, end_date, end_date))
+    existing_budget = cur.fetchone()
+    
+    if existing_budget:
+        return redirect(url_for('manage_budgets'))
+    
+    # Insert new budget
+    cur.execute("""
+        INSERT INTO Budgets (name, amount, start_date, end_date, user_id, category_id) 
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (budget_name, amount, start_date, end_date, session['user_id'], category_id))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_budgets'))
+
+@app.route('/edit_budget', methods=['POST'])
+def edit_budget():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    budget_id = request.form['budget_id']
+    budget_name = request.form['budget_name'].strip()
+    category_id = request.form['category_id']
+    amount = request.form['amount']
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+    
+    # Validate amount is greater than 0
+    try:
+        amount_float = float(amount)
+        if amount_float <= 0:
+            return redirect(url_for('manage_budgets'))
+    except ValueError:
+        return redirect(url_for('manage_budgets'))
+    
+    # Validate dates
+    if start_date >= end_date:
+        return redirect(url_for('manage_budgets'))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check if budget already exists for this category and period (excluding current budget)
+    cur.execute("""
+        SELECT * FROM Budgets 
+        WHERE user_id = %s AND category_id = %s AND budget_id != %s
+        AND ((start_date <= %s AND end_date >= %s) OR (start_date <= %s AND end_date >= %s))
+    """, (session['user_id'], category_id, budget_id, start_date, start_date, end_date, end_date))
+    existing_budget = cur.fetchone()
+    
+    if existing_budget:
+        return redirect(url_for('manage_budgets'))
+    
+    # Update budget
+    cur.execute("""
+        UPDATE Budgets 
+        SET name = %s, amount = %s, start_date = %s, end_date = %s, category_id = %s 
+        WHERE budget_id = %s AND user_id = %s
+    """, (budget_name, amount, start_date, end_date, category_id, budget_id, session['user_id']))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_budgets'))
+
+@app.route('/delete_budget', methods=['POST'])
+def delete_budget():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    budget_id = request.form['budget_id']
+    
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM Budgets WHERE budget_id = %s AND user_id = %s", (budget_id, session['user_id']))
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_budgets'))
+
+@app.route('/manage_friends')
+def manage_friends():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    friends = get_user_friends_with_stats(session['user_id'])
+    current_balance = get_user_current_balance(session['user_id'])
+    
+    # Calculate friend statistics
+    accepted_friends_count = len([f for f in friends if f[2] == 'accepted'])
+    pending_requests_count = len([f for f in friends if f[2] == 'pending'])
+    avg_friend_expenses = sum(float(f[3]) for f in friends if f[2] == 'accepted') / accepted_friends_count if accepted_friends_count > 0 else 0.0
+    
+    return render_template('friends.html', 
+                         username=session.get('username', ''), 
+                         friends=friends, 
+                         accepted_friends_count=accepted_friends_count,
+                         pending_requests_count=pending_requests_count,
+                         avg_friend_expenses=avg_friend_expenses,
+                         current_balance=current_balance,
+                         locale=str(get_locale()))
+
+def get_user_friends_with_stats(user_id):
+    """Get user's friends with their expense statistics"""
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT 
+            CASE 
+                WHEN f.user_id = %s THEN f.friend_id
+                ELSE f.user_id
+            END as friend_id,
+            u.username,
+            f.status,
+            COALESCE(SUM(t.amount), 0) as total_expenses,
+            COUNT(t.transaction_id) as transaction_count,
+            (SELECT c.category_name 
+             FROM Transactions t2 
+             INNER JOIN Category c ON t2.category_id = c.category_id 
+             WHERE t2.user_id = CASE WHEN f.user_id = %s THEN f.friend_id ELSE f.user_id END
+             GROUP BY c.category_name 
+             ORDER BY COUNT(*) DESC 
+             LIMIT 1) as most_used_category,
+            CASE 
+                WHEN f.user_id = %s THEN 'sent'
+                ELSE 'received'
+            END as request_direction
+        FROM Friends f
+        INNER JOIN Users u ON (CASE WHEN f.user_id = %s THEN f.friend_id ELSE f.user_id END) = u.user_id
+        LEFT JOIN Transactions t ON (CASE WHEN f.user_id = %s THEN f.friend_id ELSE f.user_id END) = t.user_id
+        WHERE f.user_id = %s OR f.friend_id = %s
+        GROUP BY f.user_id, f.friend_id, f.status, u.username
+        ORDER BY f.status, u.username
+    """, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
+    friends = cur.fetchall()
+    cur.close()
+    return friends
+
+@app.route('/add_friend', methods=['POST'])
+def add_friend():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    friend_username = request.form['friend_username'].strip()
+    
+    if not friend_username:
+        return redirect(url_for('manage_friends'))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check if friend exists
+    cur.execute("SELECT user_id FROM Users WHERE username = %s", (friend_username,))
+    friend_user = cur.fetchone()
+    
+    if not friend_user:
+        return redirect(url_for('manage_friends'))
+    
+    friend_id = friend_user[0]
+    
+    # Check if already friends or request exists
+    cur.execute("""
+        SELECT * FROM Friends 
+        WHERE (user_id = %s AND friend_id = %s) OR (user_id = %s AND friend_id = %s)
+    """, (session['user_id'], friend_id, friend_id, session['user_id']))
+    existing_friendship = cur.fetchone()
+    
+    if existing_friendship:
+        return redirect(url_for('manage_friends'))
+    
+    # Add friend request
+    cur.execute("""
+        INSERT INTO Friends (user_id, friend_id, status) 
+        VALUES (%s, %s, 'pending')
+    """, (session['user_id'], friend_id))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_friends'))
+
+@app.route('/respond_to_friend_request', methods=['POST'])
+def respond_to_friend_request():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    friend_id = request.form['friend_id']
+    action = request.form['action']
+    
+    cur = mysql.connection.cursor()
+    
+    if action == 'accept':
+        # Update the friend request to accepted
+        cur.execute("""
+            UPDATE Friends 
+            SET status = 'accepted' 
+            WHERE user_id = %s AND friend_id = %s
+        """, (friend_id, session['user_id']))
+    elif action == 'reject':
+        # Delete the friend request
+        cur.execute("""
+            DELETE FROM Friends 
+            WHERE user_id = %s AND friend_id = %s
+        """, (friend_id, session['user_id']))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_friends'))
+
+@app.route('/remove_friend', methods=['POST'])
+def remove_friend():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    friend_id = request.form['friend_id']
+    
+    cur = mysql.connection.cursor()
+    
+    # Remove the friendship (both directions)
+    cur.execute("""
+        DELETE FROM Friends 
+        WHERE (user_id = %s AND friend_id = %s) OR (user_id = %s AND friend_id = %s)
+    """, (session['user_id'], friend_id, friend_id, session['user_id']))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return redirect(url_for('manage_friends'))
+
+@app.route('/view_friend/<int:friend_id>')
+def view_friend(friend_id):
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    # Verify friendship exists and is accepted
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT status FROM Friends 
+        WHERE (user_id = %s AND friend_id = %s) OR (user_id = %s AND friend_id = %s)
+    """, (session['user_id'], friend_id, friend_id, session['user_id']))
+    friendship = cur.fetchone()
+    
+    if not friendship or friendship[0] != 'accepted':
+        return redirect(url_for('manage_friends'))
+    
+    # Get friend's username
+    cur.execute("SELECT username FROM Users WHERE user_id = %s", (friend_id,))
+    friend_user = cur.fetchone()
+    friend_name = friend_user[0] if friend_user else 'Unknown'
+    
+    # Get friend's transactions
+    friend_transactions = grab_user_transactions(friend_id)
+    
+    # Get friend's statistics
+    friend_stats = get_user_statistics(friend_id)
+    
+    # Add additional statistics
+    from datetime import date, timedelta
+    today = date.today()
+    first_day_month = today.replace(day=1)
+    last_month = (first_day_month - timedelta(days=1)).replace(day=1)
+    
+    # This month expenses
+    cur.execute("""
+        SELECT COALESCE(SUM(amount), 0) FROM Transactions 
+        WHERE user_id = %s AND date >= %s
+    """, (friend_id, first_day_month))
+    this_month = float(cur.fetchone()[0])
+    
+    # Last month expenses
+    cur.execute("""
+        SELECT COALESCE(SUM(amount), 0) FROM Transactions 
+        WHERE user_id = %s AND date >= %s AND date < %s
+    """, (friend_id, last_month, first_day_month))
+    last_month_expenses = float(cur.fetchone()[0])
+    
+    # Average transaction
+    avg_transaction = friend_stats['total_expenses'] / friend_stats['total_transactions'] if friend_stats['total_transactions'] > 0 else 0.0
+    
+    friend_stats.update({
+        'this_month': this_month,
+        'last_month': last_month_expenses,
+        'avg_transaction': avg_transaction
+    })
+    
+    cur.close()
+    
+    current_balance = get_user_current_balance(session['user_id'])
+    
+    return render_template('friend_detail.html',
+                         username=session.get('username', ''),
+                         friend_name=friend_name,
+                         friend_transactions=friend_transactions,
+                         friend_stats=friend_stats,
+                         current_balance=current_balance,
+                         locale=str(get_locale()))
 
 @app.route('/favicon.ico')
 def favicon():

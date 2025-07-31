@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Friend Details') }} - {{ friend_name }}</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header/Navigation -->
+        <div class="header">
+            <div class="nav-bar">
+                <p class="welcome-text">{{ _('Welcome,') }} {{ username }}!</p>
+                <div class="balance-display">
+                    <span class="balance-label">{{ _('Current Balance:') }}</span>
+                    <span class="balance-amount {% if current_balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        ${{ "%.2f"|format(current_balance) }}
+                    </span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('home') }}">{{ _('Dashboard') }}</a>
+                <a href="{{ url_for('manage_tags') }}">{{ _('Manage Tags') }}</a>
+                <a href="{{ url_for('manage_budgets') }}">{{ _('Manage Budgets') }}</a>
+                <a href="{{ url_for('manage_friends') }}">{{ _('Friends') }}</a>
+                <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Friend Details Section -->
+            <div class="expense-section">
+                <div class="section-header">
+                    <h2 class="section-title">{{ _('Friend Details') }} - {{ friend_name }}</h2>
+                    <a href="{{ url_for('manage_friends') }}" class="btn-secondary">{{ _('Back to Friends') }}</a>
+                </div>
+                
+                <!-- Friend Summary -->
+                <div class="friend-summary">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">{{ _('Total Expenses:') }}</span>
+                            <span class="summary-value amount-negative">${{ "%.2f"|format(friend_stats.total_expenses) }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">{{ _('Transaction Count:') }}</span>
+                            <span class="summary-value">{{ friend_stats.total_transactions }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">{{ _('Largest Expense:') }}</span>
+                            <span class="summary-value">${{ "%.2f"|format(friend_stats.largest_expense) }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">{{ _('Most Used Category:') }}</span>
+                            <span class="summary-value">{{ friend_stats.most_used_category }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Friend Transactions -->
+                <div class="transactions-section">
+                    <h3 class="section-subtitle">{{ _('Recent Transactions') }}</h3>
+                    <table class="expense-table">
+                        <thead>
+                            <tr>
+                                <th>{{ _('Date') }}</th>
+                                <th>{{ _('Category') }}</th>
+                                <th>{{ _('Tags') }}</th>
+                                <th>{{ _('Amount') }}</th>
+                                <th>{{ _('Description') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if friend_transactions %}
+                                {% for transaction in friend_transactions %}
+                                <tr>
+                                    <td>{{ transaction[1] }}</td>
+                                    <td>{{ transaction[5] }}</td>
+                                    <td>
+                                        {% if transaction[7] %}
+                                            {% set tag_names = transaction[7].split(', ') %}
+                                            {% for tag_name in tag_names %}
+                                                <span class="tag-badge">{{ tag_name }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="no-tag">{{ _('None') }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="amount-negative">-${{ "%.2f"|format(transaction[2]) }}</td>
+                                    <td>{{ transaction[3] }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #666; padding: 2rem;">{{ _('No transactions found.') }}</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="card-title">{{ _('Quick Actions') }}</h3>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('manage_friends') }}" class="btn-secondary">{{ _('Back to Friends') }}</a>
+                        <a href="{{ url_for('home') }}" class="btn-secondary">{{ _('Back to Dashboard') }}</a>
+                    </div>
+                </div>
+
+                <!-- Friend Statistics -->
+                <div class="summary-card">
+                    <h3 class="card-title">{{ _('Friend Statistics') }}</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Average Transaction:') }}</span>
+                        <span class="summary-value amount-negative">${{ "%.2f"|format(friend_stats.avg_transaction) }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('This Month:') }}</span>
+                        <span class="summary-value amount-negative">${{ "%.2f"|format(friend_stats.this_month) }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">{{ _('Last Month:') }}</span>
+                        <span class="summary-value amount-negative">${{ "%.2f"|format(friend_stats.last_month) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

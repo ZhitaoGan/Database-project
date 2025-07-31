@@ -22,8 +22,8 @@
             <nav class="nav-links">
                 <a href="{{ url_for('home') }}">{{ _('Dashboard') }}</a>
                 <a href="{{ url_for('manage_tags') }}" style="background: rgba(33, 150, 243, 0.1);">{{ _('Manage Tags') }}</a>
-                <a href="#budgets">{{ _('Manage Budgets') }}</a>
-                <a href="#reports">{{ _('Reports & Analytics') }}</a>
+                <a href="{{ url_for('manage_budgets') }}">{{ _('Manage Budgets') }}</a>
+                <a href="{{ url_for('manage_friends') }}">{{ _('Friends') }}</a>
                 <a href="{{ url_for('logout') }}" style="color: #f44336;">{{ _('Logout') }}</a>
             </nav>
         </div>
