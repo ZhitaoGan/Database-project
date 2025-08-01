@@ -474,3 +474,18 @@ msgstr "上月："
 msgid "You will be able to view your friend's details after they accept your request."
 msgstr "您的朋友接受请求后，您就可以查看他们的详细信息。"
 
+msgid "User not found. Please check the username and try again."
+msgstr "用户未找到。请检查用户名并重试。"
+
+msgid "You cannot add yourself as a friend."
+msgstr "您不能将自己添加为朋友。"
+
+msgid "Friend request already exists or you are already friends."
+msgstr "好友请求已存在或您已经是朋友了。"
+
+msgid "Friend request sent successfully!"
+msgstr "好友请求发送成功！"
+
+msgid "Please enter a username."
+msgstr "请输入用户名。"
+

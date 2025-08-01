@@ -696,6 +696,16 @@ input[type="submit"]:hover, .btn:hover {
     padding-left: 0.5rem;
 }
 
+.success-message {
+    color: #4caf50;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0;
+    border-radius: 4px;
+    background-color: rgba(76, 175, 80, 0.1);
+    padding-left: 0.5rem;
+}
+
 /* Budget Management Styles */
 .budgets-grid {
     display: grid;

@@ -880,6 +880,11 @@ def manage_friends():
     pending_requests_count = len([f for f in friends if f[2] == 'pending'])
     avg_friend_expenses = sum(float(f[3]) for f in friends if f[2] == 'accepted') / accepted_friends_count if accepted_friends_count > 0 else 0.0
     
+    # Get error and success messages from session
+    error_msg = session.pop('friend_error', None)
+    success_msg = session.pop('friend_success', None)
+    modal_open = session.pop('modal_open', False)
+    
     return render_template('friends.html', 
                          username=session.get('username', ''), 
                          friends=friends, 
@@ -887,6 +892,9 @@ def manage_friends():
                          pending_requests_count=pending_requests_count,
                          avg_friend_expenses=avg_friend_expenses,
                          current_balance=current_balance,
+                         error_msg=error_msg,
+                         success_msg=success_msg,
+                         modal_open=modal_open,
                          locale=str(get_locale()))
 
 def get_user_friends_with_stats(user_id):
@@ -932,6 +940,8 @@ def add_friend():
     friend_username = request.form['friend_username'].strip()
     
     if not friend_username:
+        session['friend_error'] = gettext("Please enter a username.")
+        session['modal_open'] = True
         return redirect(url_for('manage_friends'))
     
     cur = mysql.connection.cursor()
@@ -941,9 +951,18 @@ def add_friend():
     friend_user = cur.fetchone()
     
     if not friend_user:
+        # User not found in database
+        session['friend_error'] = gettext("User not found. Please check the username and try again.")
+        session['modal_open'] = True
         return redirect(url_for('manage_friends'))
     
     friend_id = friend_user[0]
+    
+    # Check if user is trying to add themselves
+    if friend_id == session['user_id']:
+        session['friend_error'] = gettext("You cannot add yourself as a friend.")
+        session['modal_open'] = True
+        return redirect(url_for('manage_friends'))
     
     # Check if already friends or request exists
     cur.execute("""
@@ -953,6 +972,8 @@ def add_friend():
     existing_friendship = cur.fetchone()
     
     if existing_friendship:
+        session['friend_error'] = gettext("Friend request already exists or you are already friends.")
+        session['modal_open'] = True
         return redirect(url_for('manage_friends'))
     
     # Add friend request
@@ -963,6 +984,11 @@ def add_friend():
     
     mysql.connection.commit()
     cur.close()
+    
+    # Clear any previous error messages and set success message
+    session.pop('friend_error', None)
+    session.pop('modal_open', None)
+    session['friend_success'] = gettext("Friend request sent successfully!")
     
     return redirect(url_for('manage_friends'))
 

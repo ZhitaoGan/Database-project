@@ -6,7 +6,7 @@
     <title>{{ _('Friends') }}</title>
     <link rel="stylesheet" href="/static/styles/style.css">
 </head>
-<body>
+<body data-modal-open="{% if modal_open or error_msg %}true{% else %}false{% endif %}">
     <div class="dashboard-container">
         <!-- Header/Navigation -->
         <div class="header">
@@ -128,10 +128,20 @@
                 <span class="close" onclick="closeAddFriendModal()">&times;</span>
             </div>
             <form action="{{ url_for('add_friend') }}" method="post">
-                <div class="msg">{{ msg }}</div>
+                {% if error_msg %}
+                <div class="error-message">
+                    {{ error_msg }}
+                </div>
+                {% endif %}
+                {% if success_msg %}
+                <div class="success-message">
+                    {{ success_msg }}
+                </div>
+                {% endif %}
                 
                 <label for="friend_username">{{ _('Friend Username:') }}</label>
-                <input type="text" name="friend_username" id="friend_username" placeholder="{{ _('Enter friend username') }}" required>
+                <input type="text" name="friend_username" id="friend_username" placeholder="{{ _('Enter friend username') }}" 
+                       value="{{ request.form.get('friend_username', '') }}" required>
                 
                 <div class="modal-buttons">
                     <button type="submit" class="btn-primary">{{ _('Send Request') }}</button>
@@ -195,6 +205,14 @@
             
             if (event.target == addModal) {
                 addModal.style.display = 'none';
+            }
+        }
+
+        // Auto-open modal if there's an error or if modal_open is true
+        window.onload = function() {
+            var modalOpen = document.body.getAttribute('data-modal-open');
+            if (modalOpen === 'true') {
+                document.getElementById('addFriendModal').style.display = 'block';
             }
         }
     </script>

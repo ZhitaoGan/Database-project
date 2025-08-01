@@ -615,3 +615,18 @@ msgstr "Last Month:"
 msgid "You will be able to view your friend's details after they accept your request."
 msgstr "You will be able to view your friend's details after they accept your request."
 
+msgid "User not found. Please check the username and try again."
+msgstr "User not found. Please check the username and try again."
+
+msgid "You cannot add yourself as a friend."
+msgstr "You cannot add yourself as a friend."
+
+msgid "Friend request already exists or you are already friends."
+msgstr "Friend request already exists or you are already friends."
+
+msgid "Friend request sent successfully!"
+msgstr "Friend request sent successfully!"
+
+msgid "Please enter a username."
+msgstr "Please enter a username."
+
