@@ -81,7 +81,11 @@ EXIT;
 
 #### Import Database Schema
 ```bash
-mysql -u root -p expenses_project < expenses_project.sql
+# Import the database structure (DDL)
+mysql -u root -p expenses_project < DDL.sql
+
+# Import sample data (DML) - optional
+mysql -u root -p expenses_project < DML.sql
 ```
 
 ### 5. Configure Application
@@ -121,10 +125,14 @@ The application will be available at `http://localhost:5000`
 Database-project/
 ├── app.py                 # Main Flask application
 ├── requirements.txt       # Python dependencies
-├── expenses_project.sql   # Database schema
+├── DDL.sql               # Database structure (Data Definition Language)
+├── DML.sql               # Sample data (Data Manipulation Language)
 ├── static/               # Static files (CSS, JS)
 ├── templates/            # HTML templates
-└── translations/         # Multi-language support
+├── translations/         # Multi-language support
+├── backup_scripts/       # Database backup scripts
+├── babel.cfg            # Babel configuration for translations
+└── messages.pot         # Translation template
 ```
 
 ## Troubleshooting
@@ -152,6 +160,9 @@ mysql -u root -p
 DROP DATABASE expenses_project;
 CREATE DATABASE expenses_project;
 EXIT;
-mysql -u root -p expenses_project < expenses_project.sql
+# Import the database structure (DDL)
+mysql -u root -p expenses_project < DDL.sql
+# Import sample data (DML) - optional
+mysql -u root -p expenses_project < DML.sql
 ```
 
