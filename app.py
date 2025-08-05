@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, g
+from flask import Flask, render_template, request, redirect, url_for, session, g, send_from_directory
 from flask_mysqldb import MySQL
 from flask_babel import Babel, gettext, ngettext, get_locale
 import os
-from werkzeug.utils import send_from_directory
 
 app = Flask(__name__)
 
@@ -1111,8 +1110,11 @@ def view_friend(friend_id):
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    try:
+        return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    except:
+        # Return a simple 404 if favicon doesn't exist
+        return '', 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
